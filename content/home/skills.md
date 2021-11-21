@@ -16,18 +16,31 @@ subtitle:
 # - Add/remove as many `feature` blocks below as you like.
 # - For available icons, see: https://wowchemy.com/docs/page-builder/#icons
 feature:
-- description: 90%
+- description: "Confident in *dplyr*, *ggplot2* and *caret* among others. Actively learning *tidymodels* metapackage."
   icon: r-project
   icon_pack: fab
   name: R
-- description: 100%
-  icon: chart-line
+- description: "Used mainly for mathematics (e.g. numerically solving PDEs)."
+  icon: python
+  icon_pack: fab
+  name: Python
+- description: "Formulae manipulations, e.g. *VLOOKUP*. Pivot Tables."
+  icon: file-excel
   icon_pack: fas
-  name: Statistics
-- description: 10%
-  icon: camera-retro
-  icon_pack: fas
-  name: Photography
+  name: MS Excel
+- icon: postgresqllogo
+  icon_pack: custom
+  name: PostgreSQL
+  description: Basic commands for data extraction and manipulation.
+- icon: powebilogo
+  icon_pack: custom
+  name: MS Power Bi
+  description: Data Visualisation and interactive dashboards. 
+- icon: latexlogo
+  icon_pack: custom
+  name: LaTeX
+  description: Reports and academic-style papers.
+
 
 # Uncomment to use emoji icons.
 #- icon: ':smile:'

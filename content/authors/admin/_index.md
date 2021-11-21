@@ -29,7 +29,7 @@ education:
     institution: The University of Warwick
     year: 2022
   - course: BSc in Pure Mathematics/Statistics
-    institution: Aberystwyth University in Wales
+    institution: Aberystwyth University
     year: 2021
 
 # Social/Academic Networking
