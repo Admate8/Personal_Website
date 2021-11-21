@@ -6,9 +6,9 @@
 # Appearance
 
 theme: coffee
-day_night: true
-font: ''
-font_size: L
+day_night: ""
+font: 'Montserrat'
+font_size: M
 
 # SEO
 
@@ -79,8 +79,8 @@ highlight_languages:
   - r
   - python
   - latex
-math: false
-diagram: false
+math: true
+diagram: true
 privacy_pack: false
 edit_page:
   repo_url: ''

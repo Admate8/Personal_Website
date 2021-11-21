@@ -29,7 +29,7 @@ item:
   description: ""
   organization: DataCamp
   organization_url: https://app.datacamp.com/learn/
-  title: Data Scientist with R Track
+  title: Data Scientist with R
   url: ""
 - certificate_url: https://www.datacamp.com/statement-of-accomplishment/track/a856e4d7a706de051f095c386708f736e200b3f9
   date_end: ""
