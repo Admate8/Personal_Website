@@ -52,13 +52,14 @@ links:
 </ul></li>
 </ul></li>
 <li><a href="#modelling"><span class="toc-section-number">2</span> Modelling</a><ul>
-<li><a href="#initial-considerations"><span class="toc-section-number">2.1</span> Initial Considerations</a><ul>
-<li><a href="#model-diagnositcs"><span class="toc-section-number">2.1.1</span> Model Diagnositcs</a></li>
-<li><a href="#outliers-and-influential-observations"><span class="toc-section-number">2.1.2</span> Outliers and Influential Observations</a></li>
-<li><a href="#variable-selection"><span class="toc-section-number">2.1.3</span> Variable Selection</a></li>
+<li><a href="#initial-considerations"><span class="toc-section-number">2.1</span> Initial Considerations</a></li>
+<li><a href="#transformation-of-dependent-variable"><span class="toc-section-number">2.2</span> Transformation of Dependent Variable</a><ul>
+<li><a href="#model-diagnositcs"><span class="toc-section-number">2.2.1</span> Model Diagnositcs</a></li>
+<li><a href="#outliers-and-influential-observations"><span class="toc-section-number">2.2.2</span> Outliers and Influential Observations</a></li>
+<li><a href="#variable-selection"><span class="toc-section-number">2.2.3</span> Variable Selection</a></li>
 </ul></li>
-<li><a href="#final-model"><span class="toc-section-number">2.2</span> Final Model</a></li>
-<li><a href="#model-explanantion"><span class="toc-section-number">2.3</span> Model Explanantion</a></li>
+<li><a href="#final-model"><span class="toc-section-number">2.3</span> Final Model</a></li>
+<li><a href="#model-explanantion"><span class="toc-section-number">2.4</span> Model Explanantion</a></li>
 </ul></li>
 </ul>
 </div>
@@ -633,8 +634,10 @@ Model 2
 </tbody>
 </table>
 <p>In terms of the <span class="math inline">\(R^2\)</span>, we have high values where at least <span class="math inline">\(86\%\)</span> of the variance in <em>MPG</em> can be explained by our model. This suggests strong predictive power. The adjusted <span class="math inline">\(R^2\)</span>, which accounts for the fact that more complicated models will perform better, and so penalises such models to encourage simpler models that still predict well, are similarly high. However, in both cases in the residuals plot we observe heteroscedasticity of the errors (that is, the variance of the errors change as the fitted values change), and a noticeable “smile” of the residuals which shows that the mean of residuals is non-zero. Further, the Q-Q plot also shows a large number of observations in the tails that deviate from the expected straight line.</p>
-<p>Figure 2.1 and 2.2 suggest that despite the predictive power of our model, there is a violation of our modelling assumptions. This in particular weakens the validity of any statistical inference we carry out as these procedures assume that the modelling assumptions hold. Consequently, our conclusions on what variables are important in determining fuel efficiency may not be correct, limiting the usefulness of our model.
-## Transformation of Dependent Variable</p>
+<p>Figure 2.1 and 2.2 suggest that despite the predictive power of our model, there is a violation of our modelling assumptions. This in particular weakens the validity of any statistical inference we carry out as these procedures assume that the modelling assumptions hold. Consequently, our conclusions on what variables are important in determining fuel efficiency may not be correct, limiting the usefulness of our model.</p>
+</div>
+<div id="transformation-of-dependent-variable" class="section level2">
+<h2><span class="header-section-number">2.2</span> Transformation of Dependent Variable</h2>
 As our main issue is the non-normality and heteroscedasticity of the errors which is not resolved by transforming the independent variables, we will now instead consider transforming our dependent variable: <em>MPG</em>. To find the optimal transformation, we will use what is called a “boxcox” transformation, where we aim to transform <span class="math inline">\(y\)</span> to <span class="math inline">\(y^\lambda\)</span> (or <span class="math inline">\(\textrm{log}(y)\)</span> in the case <span class="math inline">\(\lambda=0\)</span>).
 <div class="figure"><span style="display:block;" id="fig:boxcox"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/boxcox-1.png" alt="Profile likelihood for boxcox transformation" width="672" />
@@ -644,7 +647,7 @@ Figure 2.3: Profile likelihood for boxcox transformation
 </div>
 <p>Using the boxcox function, we find that the optimal value of <span class="math inline">\(\lambda\)</span> for the transformation is approximately <span class="math inline">\(-\frac{9}{10}\)</span> (the <span class="math inline">\(\lambda\)</span> where the height of the curve is maximised), which corresponds to transforming <span class="math inline">\(y=MPG\)</span> into <span class="math inline">\(y_{transformed}=MPG^{-\frac{9}{10}}\)</span>. However, the <span class="math inline">\(95\%\)</span> confidence interval for this <span class="math inline">\(\lambda\)</span> is approximately <span class="math inline">\([-1.1,-0.5]\)</span> and as <span class="math inline">\(-1\)</span> lies in this confidence interval, which corresponds to the simpler transformation <span class="math inline">\(y_{transformed}=\frac{1}{MPG}\)</span>, we shall use <span class="math inline">\(\lambda=-1\)</span> instead. This transforms our <em>MPG</em> variable into a variable giving the number of gallons needed on average to traverse one mile, which we shall refer to as <em>Gallons per Mile</em> (<em>GPM</em>).</p>
 <div id="model-diagnositcs" class="section level3">
-<h3><span class="header-section-number">2.1.1</span> Model Diagnositcs</h3>
+<h3><span class="header-section-number">2.2.1</span> Model Diagnositcs</h3>
 <p>We now fit a model to this transformed data and present some of the resulting model output. The values of parameters and their significance has been ommited for brevity, but we will pay particular attention to the diagnostic plots to verify that our modelling assumptions hold, and that our transformation does indeed improve the quality of our model.</p>
 <div class="figure"><span style="display:block;" id="fig:unnamed-chunk-16"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.png" alt="Diagnostic plots for Gallons per Mile model" width="672" />
@@ -655,7 +658,7 @@ Figure 2.4: Diagnostic plots for Gallons per Mile model
 <p>Our new model’s <span class="math inline">\(R^2\)</span> increases to 0.94 with adjusted <span class="math inline">\(R^2\)</span> to 0.93, whilst having far less significant heteroscedasticity, residuals more evenly spread around zero, and a better Q-Q plot. This gives us the best of both worlds with a better fitting model which also obeys the modelling assumptions more. A drawback to using this transformation is that our model is no longer predicting the original <em>MPG</em>, but instead the inverse of this: <em>GPM</em>. However, we believe that <em>GPM</em> is still an intuitive idea that can be understood and we can still explain the trend in MPG since an increase in <em>GPM</em> indicates a decrease in fuel efficiency, i.e. <em>MPG</em>.</p>
 </div>
 <div id="outliers-and-influential-observations" class="section level3">
-<h3><span class="header-section-number">2.1.2</span> Outliers and Influential Observations</h3>
+<h3><span class="header-section-number">2.2.2</span> Outliers and Influential Observations</h3>
 <p>We do however note some concerning potential outliers. Looking at the Residuals vs Fitted plot on Figure 9, we see that observation <span class="math inline">\(54\)</span> has an usually large residual, as well as <span class="math inline">\(125\)</span> and <span class="math inline">\(156\)</span> to a lesser degree. Further, <span class="math inline">\(54\)</span> and <span class="math inline">\(125\)</span> appear as outliers on the Q-Q plot. Lastly, <span class="math inline">\(48\)</span>, <span class="math inline">\(54\)</span> and <span class="math inline">\(125\)</span> have a large Cook’s distance which suggests that they may be outliers, influential observations that distort our model, or both. We will keep these observations in mind as we investigate the model further.</p>
 <p>We will now consider a “Dffit” plot which shows by how much the predicted value of an observation changes when we fit a new model with that observation removed. Observations which have a large value are observations that are likely influential and distort the model as the large value shows that the model prediction changes significantly when they are not accounted for.</p>
 <div class="figure"><span style="display:block;" id="fig:Dffit"></span>
@@ -676,7 +679,7 @@ Figure 2.6: Added variables plots
 <p>Ideally, we would carry out two analyses in parallel, one including these two data points and one excluding, so that we may compare the results. However, in the interests of brevity, we shall only focus on the latter of these two as we find the model that does not suggest that <em>Price</em> has an effect of fuel efficiency more appealing.</p>
 </div>
 <div id="variable-selection" class="section level3">
-<h3><span class="header-section-number">2.1.3</span> Variable Selection</h3>
+<h3><span class="header-section-number">2.2.3</span> Variable Selection</h3>
 <p>Now that we have decided to remove the most prominent outliers, we wish to see whether a simpler model adequately explains the data. There are certain explanatory variables which, based on prior knowledge about cars, we would expect to not affect the fuel efficiency of the car, and so we will check if a model excluding these variables is no worse than the full model. We have the following variables, with reasons, which we expect to not be important in our model:</p>
 <ul>
 <li><em>Price</em> - Keeping all other variables constant, the price a car is sold at should not change the fuel efficiency.</li>
@@ -759,7 +762,7 @@ NA
 </div>
 </div>
 <div id="final-model" class="section level2">
-<h2><span class="header-section-number">2.2</span> Final Model</h2>
+<h2><span class="header-section-number">2.3</span> Final Model</h2>
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <caption>
 <span id="tab:approachingFinalprev">Table 2.4: </span>Final coefficients
@@ -941,7 +944,7 @@ Figure 2.7: Diagnostic plots for the final model
 <p>The diagnostic plots of our final model help to confirm the validity of our model. The Residuals vs Fitted plot exhibits little to no heteroscedasticity and our Q-Q plot very closely follows the straight line for all but two observations. Also, the Cook’s distance plot shows there are no observations that cause significant concern as no observation is close to the <span class="math inline">\(0.5\)</span> contour which indicates outliers/potentially influential observations. As a result, we are confident that the model assumptions are being fulfilled and there are no influential observations that are distorting the model. In a further analysis we may wish to investigate the two observations that demonstrate relatively large residuals, but as they do not appear to be influential on the Cook’s distance plot, we do not believe they are distorting the model and negatively affecting our inferences or model predictions.</p>
 </div>
 <div id="model-explanantion" class="section level2">
-<h2><span class="header-section-number">2.3</span> Model Explanantion</h2>
+<h2><span class="header-section-number">2.4</span> Model Explanantion</h2>
 <p>After our analysis, we have now obtained a statistical model that can be used to predict the fuel efficiency of the car. Our model predicts the fuel efficiency of a car through the number of gallons needed to drive one thousand miles, which we denote as <span class="math inline">\(GPTM\)</span>.</p>
 <p><span class="math display">\[\begin{align*}
 \hat y_{GPTM} &amp;= 25.9

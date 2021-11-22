@@ -284,6 +284,7 @@ knitr::kable(round(tab,3), caption="Comparison of $R^2$ of models", booktabs = T
 In terms of the $R^2$, we have high values where at least $86\%$ of the variance in *MPG* can be explained by our model. This suggests strong predictive power. The adjusted $R^2$, which accounts for the fact that more complicated models will perform better, and so penalises such models to encourage simpler models that still predict well, are similarly high. However, in both cases in the residuals plot we observe heteroscedasticity of the errors (that is, the variance of the errors change as the fitted values change), and a noticeable "smile" of the residuals which shows that the mean of residuals is non-zero. Further, the Q-Q plot also shows a large number of observations in the tails that deviate from the expected straight line.
 
 Figure 2.1 and 2.2 suggest that despite the predictive power of our model, there is a violation of our modelling assumptions. This in particular weakens the validity of any statistical inference we carry out as these procedures assume that the modelling assumptions hold. Consequently, our conclusions on what variables are important in determining fuel efficiency may not be correct, limiting the usefulness of our model.
+
 ## Transformation of Dependent Variable
 
 As our main issue is the non-normality and heteroscedasticity of the errors which is not resolved by transforming the independent variables, we will now instead consider transforming our dependent variable: *MPG*. To find the optimal transformation, we will use what is called a "boxcox" transformation, where we aim to transform $y$ to $y^\lambda$ (or $\textrm{log}(y)$ in the case $\lambda=0$).
@@ -334,6 +335,7 @@ We also notice that observations $54$ and $125$ again stand out in this diagram.
 Ideally, we would carry out two analyses in parallel, one including these two data points and one excluding, so that we may compare the results. However, in the interests of brevity, we shall only focus on the latter of these two as we find the model that does not suggest that *Price* has an effect of fuel efficiency more appealing.
 
 ### Variable Selection
+
 Now that we have decided to remove the most prominent outliers, we wish to see whether a simpler model adequately explains the data. There are certain explanatory variables which, based on prior knowledge about cars, we would expect to not affect the fuel efficiency of the car, and so we will check if a model excluding these variables is no worse than the full model. We have the following variables, with reasons, which we expect to not be important in our model:
 
 * *Price* - Keeping all other variables constant, the price a car is sold at should not change the fuel efficiency.
