@@ -20,8 +20,8 @@ image:
 links:
 - icon: github
   icon_pack: fab
-  name: Find the code here.
-  url: https://github.com/Admate8/DC1_11_11_21
+  name: Find the code and data here.
+  url: https://github.com/Admate8/DC2_03_12_21.git
 #url_code: ""
 #url_pdf: ""
 #url_slides: ""
