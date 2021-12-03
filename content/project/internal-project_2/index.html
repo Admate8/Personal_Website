@@ -1,0 +1,378 @@
+---
+title: Varsity Warwick 2021
+summary: Dancing competition in numbers (with code displayed).
+tags:
+- Data Cleaning
+- EDA
+date: "2021-12-03"
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: yes
+
+# Optional external URL for project (replaces project detail page).
+#external_link: ""
+
+image:
+  caption: Team Warwick
+  focal_point: Smart
+
+links:
+- icon: github
+  icon_pack: fab
+  name: Find the code here.
+  url: https://github.com/Admate8/DC1_11_11_21
+#url_code: ""
+#url_pdf: ""
+#url_slides: ""
+#url_video: ""
+
+# Slides (optional).
+#   Associate this project with Markdown slides.
+#   Simply enter your slide deck's filename without extension.
+#   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
+#   Otherwise, set `slides = ""`.
+#slides: ""
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#competition-in-numbers"><span class="toc-section-number">1</span> Competition in Numbers</a></li>
+<li><a href="#medals"><span class="toc-section-number">2</span> Medals</a></li>
+<li><a href="#my-achievements"><span class="toc-section-number">3</span> My Achievements</a></li>
+</ul>
+</div>
+
+<p>In this short post, I will introduce you to a hobby of mine by taking a quick look at the dancing competition at the University of Warwick on 20/11/21. This event was organised by fantastic <strong>Abigail Muller</strong> who also kindly shared some data with me. You can find the full unprocessed data <a href="http://www.easycompsoftware.co.uk/results.php">here</a>.</p>
+<div id="competition-in-numbers" class="section level1">
+<h1><span class="header-section-number">1</span> Competition in Numbers</h1>
+<p>Let’s begin by considering the numbers of couples competing in Warwick Varsity:</p>
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)
+
+# Load libraries
+library(tidyverse)   # For data manipulation and visualisation
+library(gridExtra)   # For combining multiple ggplots 
+library(readxl)      # For reading excel files
+
+# Load the data
+results_numbers &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Numbers.xlsx&quot;)
+results_unis &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Unis.xlsx&quot;)
+entries &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries_long.xlsx&quot;)
+entries_total &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries.xlsx&quot;)
+
+# Used later for bars ordering
+counts &lt;- entries %&gt;% count(University)
+entries_and_counts &lt;- entries %&gt;% left_join(counts, by = &quot;University&quot;)
+
+# Common legend function
+# Credits go to: 
+# https://statisticsglobe.com/add-common-legend-to-combined-ggplot2-plots-in-r/
+extract_legend &lt;- function(my_ggp) {
+  step1 &lt;- ggplot_gtable(ggplot_build(my_ggp))
+  step2 &lt;- which(sapply(step1$grobs, function(x) x$name) == &quot;guide-box&quot;)
+  step3 &lt;- step1$grobs[[step2]]
+  return(step3)
+}</code></pre>
+<pre class="r"><code># The Competition in Numbers 
+entries_total %&gt;% 
+  count(University) %&gt;%
+  ggplot(aes(reorder(University, n), n)) + geom_col(fill = &quot;darkred&quot;) +
+  coord_flip() + theme_bw() +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+  geom_text(aes(label = n), hjust = 1.25, col = &quot;white&quot;, size = 3)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-2"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" alt="The number of couples from each university" width="672" />
+<p class="caption">
+Figure 1.1: The number of couples from each university
+</p>
+</div>
+<p>In general, there were 110 couples from 13 universities. Teams representing the university of Warwick, Birmingham and Oxford together constituted almost 54% of all participants. Of course, many couples danced more than once - counting each entrance dance separately gives the following summary:</p>
+<pre class="r"><code># Combine some categories for better visualisation
+entries_and_counts_combined &lt;- entries_and_counts %&gt;%
+  mutate(Cat_Combined = case_when(
+    Category %in% c(&quot;Beginners_W&quot;, &quot;Beginners_Q&quot;, 
+                    &quot;Beginners_C&quot;, &quot;Beginners_J&quot;) ~ &quot;Beginners&quot;,
+    Category %in% c(&quot;ExStudent_CRJ&quot;, &quot;ExStudent_Novice_CJ&quot;, 
+                    &quot;ExStudent_WQT&quot;, &quot;ExStudent_Novice_WQT&quot;) ~ &quot;Ex-Students&quot;,
+    Category %in% c(&quot;Inter_Adv_WQT&quot;, &quot;Intermediate_CJR&quot;) ~ &quot;Inter/Advanced&quot;,
+    Category %in% c(&quot;Open_Foxtrot&quot;, &quot;Open_Paso&quot;, &quot;Open_Samba&quot;,
+                    &quot;Open_V&quot;, &quot;Rock_n_Roll&quot;, &quot;SameSex_CJ&quot;) ~ &quot;Open/Other&quot;,
+    TRUE ~ &quot;Novice&quot;
+    )
+  )
+
+plot_left &lt;- entries %&gt;%
+  count(University) %&gt;%
+  ggplot(aes(x = reorder(University, + n), n)) + geom_col(fill = &quot;darkred&quot;) +
+  coord_flip() + theme_bw() + ylab(&quot;Count&quot;) +
+  theme(axis.title.y = element_blank(),
+        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+  geom_text(aes(label = n), hjust = 1.25, col = &quot;white&quot;, size = 3)
+
+plot_right &lt;- ggplot(entries_and_counts_combined,
+       aes(reorder(University, n), fill = Cat_Combined)) + 
+  geom_bar(position = &quot;fill&quot;) + 
+  geom_text(
+    aes(label = round(..count.. / tapply(..count.., ..x.., sum)[as.character(..x..)], 2)),
+    stat=&quot;count&quot;,
+    position = position_fill(vjust = 0.5),
+    col = &quot;black&quot;, size = 2) +
+coord_flip() + theme_bw() + ylab(&quot;Proportion&quot;) +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = &quot;none&quot;,
+        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+  scale_fill_manual(&quot;Category&quot;,
+                    values = RColorBrewer::brewer.pal(n = 5, name = &quot;Reds&quot;))
+
+plot_legend &lt;- ggplot(entries_and_counts_combined,
+       aes(reorder(University, n), fill = Cat_Combined)) + 
+  geom_bar(position = &quot;fill&quot;) + theme(legend.position = &quot;bottom&quot;) +
+  scale_fill_manual(&quot;Category&quot;,
+                    values = RColorBrewer::brewer.pal(n = 5, name = &quot;Reds&quot;))
+
+shared_legend &lt;- extract_legend(plot_legend)
+
+grid.arrange(arrangeGrob(plot_left, plot_right, ncol = 2),
+             shared_legend, nrow = 2, heights = c(10, 1))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-3"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" alt="All dances" width="672" />
+<p class="caption">
+Figure 1.2: All dances
+</p>
+</div>
+<p>where</p>
+<ul>
+<li><em>Beginners</em> category contains:
+<ul>
+<li>English Waltz,</li>
+<li>Quickstep,</li>
+<li>Cha Cha Cha,</li>
+<li>Jive.</li>
+</ul></li>
+<li><em>Novice</em> category consists of:
+<ul>
+<li>Novice A English Waltz and Quickstep,</li>
+<li>Novice B English Waltz and Quickstep,</li>
+<li>Novice A Cha Cha Cha and Jive,</li>
+<li>Novice B Cha Cha Cha and Jive.</li>
+</ul></li>
+<li><em>Ex-Students</em> category combines:
+<ul>
+<li>Ex-Student English Waltz, Quickstep and Tango,</li>
+<li>Ex-Student Cha Cha Cha, Rumba and Jive,</li>
+<li>Ex-Student Novice English Waltz, Quickstep and Tango,</li>
+<li>Ex-Student Novice Cha Cha Cha and Jive.</li>
+</ul></li>
+<li><em>Inter/Advanced</em> category is:
+<ul>
+<li>Intermediate and Advanced English Waltz, Quickstep and Tango,</li>
+<li>Intermediate and Advanced Cha Cha Cha, Rumba and Jive.</li>
+</ul></li>
+<li><em>Open/Other</em> category merges:
+<ul>
+<li>Same Sex Cha Cha Cha and Jive,</li>
+<li>Rock’n’Roll,</li>
+<li>Open Viennese Waltz,</li>
+<li>Open Foxtrot,</li>
+<li>Open Paso Doble,</li>
+<li>Open Sambe.</li>
+</ul></li>
+</ul>
+<p>20 categories in total.</p>
+<p>The left-hand side plot shows how many dances each university participated in. For example, if a couple from Birmingham competed in Novice A Cha/Jive, Open Paso Doble and Open Samba they count as 3 - one in <em>Novice</em> and 2 in <em>Open/Other</em>. Similarly, for remaining couples. We can see that for 6 out of 13 universities beginners category was the most popular, with Cardiff almost exclusively consisting of beginners dances. Four universities did not have any couple dancing any of the beginners’ dances.</p>
+<p>Note, however, that the above plot does not tell us how many beginner couples each university had. To find these numbers, we need to define what we mean by a beginners couple. Is it a couple competing in four beginners dances, one or two/three of them? I think it’s reasonable to consider couples that competed in any of the four dances as beginners. We will include the same-sex category to the novice this time. Using this definition, we can ask which university has the most number of each category couples.</p>
+<pre class="r"><code>couples &lt;- entries_total %&gt;%
+  mutate(Category_Couple = case_when(
+    (Beginners_W == 1 | Beginners_Q == 1 |
+       Beginners_C == 1 | Beginners_J == 1) ~ &quot;Beginner&quot;,
+    (Novice_1_WQ == 1 | Novice_1_CJ == 1 |
+       Novice_2_WQ == 1 | Novice_2_CJ == 1 |
+       SameSex_CJ == 1) ~ &quot;Novice&quot;,
+    (ExStudent_CRJ == 1 | ExStudent_WQT == 1 |
+      ExStudent_Novice_CJ == 1 | ExStudent_Novice_WQ == 1) ~ &quot;Ex-Student&quot;,
+    Inter_Adv_WQT == 1 | Intermediate_CJR == 1 ~ &quot;Inter/Advanced&quot;,
+    TRUE ~ &quot;Else&quot;
+  )) %&gt;%
+  select(University, Category_Couple) %&gt;%
+  group_by(University) %&gt;%
+  count(Category_Couple) %&gt;%
+  filter(Category_Couple != &quot;Else&quot;) %&gt;%
+  ungroup() 
+
+# Beginners
+b &lt;- couples %&gt;%
+  filter(Category_Couple == &quot;Beginner&quot;) %&gt;%
+  select(-Category_Couple) %&gt;%
+  arrange(desc(n)) %&gt;%
+  head(1)
+
+# Novice
+n &lt;- couples %&gt;%
+  filter(Category_Couple == &quot;Novice&quot;) %&gt;%
+  select(-Category_Couple) %&gt;%
+  arrange(desc(n)) %&gt;%
+  head(1)
+
+# Ex-Student
+e &lt;- couples %&gt;%
+  filter(Category_Couple == &quot;Ex-Student&quot;) %&gt;%
+  select(-Category_Couple) %&gt;%
+  arrange(desc(n)) %&gt;%
+  head(1)
+
+# Inter/Advanced
+i &lt;- couples %&gt;%
+  filter(Category_Couple == &quot;Inter/Advanced&quot;) %&gt;%
+  select(-Category_Couple) %&gt;%
+  arrange(desc(n)) %&gt;%
+  head(1)
+
+table_sum &lt;- rbind(b,n,e,i)
+Category &lt;- c(&quot;Beginners&quot;, &quot;Novice&quot;, &quot;Ex-Students&quot;, &quot;Inter/Advanced&quot;)
+
+# Which uni had the most couples for each category
+knitr::kable(table_final &lt;- cbind(Category, table_sum), 
+             caption = &quot;Universities with the most couples for each category&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 1.1: </span>Universities with the most couples for each category</caption>
+<thead>
+<tr class="header">
+<th align="left">Category</th>
+<th align="left">University</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beginners</td>
+<td align="left">Oxford</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">Novice</td>
+<td align="left">Warwick</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">Ex-Students</td>
+<td align="left">Birmingham</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">Inter/Advanced</td>
+<td align="left">Bristol</td>
+<td align="right">3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="medals" class="section level1">
+<h1><span class="header-section-number">2</span> Medals</h1>
+<p>Now, let me quickly investigate the most successful couples of the competition. Dancers with the number 89 won six (!) medals with two gold ones. Also, a couple with the number 61 won three gold medals out of all four they acquired. Absolutely staggering feat!</p>
+<pre class="r"><code>results_numbers_factors &lt;- results_numbers %&gt;%
+  mutate_if(is.numeric, as.factor)
+
+# Overall medals
+freq_table &lt;- table(unlist(results_numbers_factors[,-1]))
+
+Number &lt;- c(&quot;89&quot;, &quot;115&quot;, &quot;12, 23, 74, 61, 66&quot;)
+Medals &lt;- c(&quot;6&quot;, &quot;5&quot;, &quot;4&quot;)
+
+medals_table &lt;- cbind(Number, Medals)
+knitr::kable(medals_table, caption = &quot;Couples with the most medals&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2.1: </span>Couples with the most medals</caption>
+<thead>
+<tr class="header">
+<th align="left">Number</th>
+<th align="left">Medals</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">89</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="left">115</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="left">12, 23, 74, 61, 66</td>
+<td align="left">4</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># Gold medals
+results_numbers_factors_first &lt;- results_numbers_factors[1, ]
+freq_table_first &lt;- table(unlist(results_numbers_factors_first[,-1]))
+
+Numbers &lt;- c(&quot;80, 61&quot;, &quot;74, 89, 1&quot;)
+Gold_Medals &lt;- c(&quot;3&quot;, &quot;2&quot;)
+
+medals_table_first &lt;- cbind(Numbers, Gold_Medals)
+knitr::kable(medals_table_first, 
+             caption = &quot;Couples holding the most gold medals&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2.1: </span>Couples holding the most gold medals</caption>
+<thead>
+<tr class="header">
+<th align="left">Numbers</th>
+<th align="left">Gold_Medals</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">80, 61</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td align="left">74, 89, 1</td>
+<td align="left">2</td>
+</tr>
+</tbody>
+</table>
+<p>If we look at overall medal-wise performance, team Warwick won 24 medals in total! Of course, the more couples and dances entered, the higher the number of won medals - we can see that Warwick, Birmingham and Oxford had the higher number of competing couples and they competed in the most number of dances, hence, they won the highest number of medals. Team Bristol dominated the scene by winning the most gold medals. Since they competed only in open and intermediate/advanced categories, their accomplishments impress even more!</p>
+<pre class="r"><code># Universities with the most medals
+results_unis_factor &lt;- results_unis %&gt;%
+  mutate_if(is.numeric, as.factor)
+
+freq_table_unis &lt;- table(unlist(results_unis_factor[,-1]))
+freq_table_unis &lt;- freq_table_unis[-1]
+freq_table_unis &lt;- freq_table_unis[order(freq_table_unis)]
+
+freq_table_unis_2 &lt;- table(unlist(results_unis_factor[1, -1]))
+
+df &lt;- as.data.frame(freq_table_unis)
+df2 &lt;- as.data.frame(freq_table_unis_2)
+
+# Final Plot
+ggplot(data = df) + geom_col(aes(Var1, Freq, fill = &quot;All&quot;)) + 
+  geom_col(data = df2, aes(Var1, Freq, fill = &quot;Gold&quot;)) +
+  coord_flip() + theme_bw() + 
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;),
+        legend.background = element_rect(fill = &quot;#e2d4d0&quot;)) +
+  geom_text(data = df, aes(Var1, Freq, label = Freq), 
+            hjust = 1.25, col = &quot;black&quot;, size = 3) +
+  geom_text(data = df2, aes(Var1, Freq, label = Freq), 
+            hjust = 1.25, col = &quot;black&quot;, size = 3) +
+  scale_fill_manual(name = &quot;Medals&quot;,
+      values = c(All = &quot;#FFD700&quot;, Gold = &quot;#FF8C00&quot;))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>It was a fantastic event with a friendly atmosphere and many talented people! Big shout out to everybody competing, especially our incredible beginners and those who competed for the first time - you all did a fabulous job! I hope to see many of you in future competitions. :)</p>
+</div>
+<div id="my-achievements" class="section level1">
+<h1><span class="header-section-number">3</span> My Achievements</h1>
+<p>Even though my partner and I have been dancing together for only three months, we won third place in Novice B English Waltz and Quickstep, and fourth place in Novice A Cha Cha Cha and Jive! A big thank you to my brilliant partner <strong>Paulina Michór</strong>, who faced the challenge of competing as a novice despite being a beginner and worked so hard on every aspect of her dancing technique. So pround of you!</p>
+<p><img src="images/p2.png" style="width:60.0%" /></p>
+</div>
