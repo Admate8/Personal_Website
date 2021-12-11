@@ -39,6 +39,19 @@ I created this analysis together with **Alexander Kent** and **Kefan Meng** as a
 
 The project aim was to investigate the relationship of the MPG (miles per gallon) of a 1980’s car to its other characteristics and question the possibility to use a regression model to reliably predict the MPG.
 
+**Update 11/12/21**:
+
+This work has been marked on over 87%, with particularly positive feedback on detailed data analysis and creative visualisation methods. 
+
+**What I have learnt**:
+
+* There is no model without first understanding the data. 
+* Often more information about the raw data is needed for in-depth analysis.
+* Model assumptions are vital.
+* Multicollinearity is not always the problem - even for highly correlated variables - it depends on what we aim to achieve, understandable model or highly accurate predictions.
+* Do not underestimate intuition - fully data-driven analysis can be blinding. 
+* Report narrative is crucial to aid non-specialist understanding. 
+
 # Explanatory Data Analysis
 ## Data Preparation
 
