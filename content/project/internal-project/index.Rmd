@@ -18,6 +18,7 @@ image:
   caption: Photo by CHUTTERSNAP on Unsplash
   focal_point: Smart
 
+
 links:
 - icon: github
   icon_pack: fab
@@ -127,24 +128,22 @@ give.n <- function(x){
 }
 # Leading plot with y-axis
 c_plot1 <- ggplot(cat_var, aes(Doors, MPG)) +
-  geom_boxplot(fill = "#78544c") + theme_bw() + 
+  geom_boxplot(fill = "blue") + theme_bw() + 
   stat_summary(fun.data = give.n, geom = "text", fun = median,
                position = position_dodge(width = 0.75), 
                colour = "white", size = 2.5) +
-  theme(axis.text.x=element_text(size=6),
-        plot.background = element_rect(fill = "#e2d4d0", color = "#e2d4d0"))
+  theme(axis.text.x=element_text(size=6))
 
 # Function for other variables
 cat_plots <- function(x, y){
   cat_var %>%
   ggplot(aes(get(x), get(y))) + 
-           geom_boxplot(fill = "#78544c") + theme_bw() +
+           geom_boxplot(fill = "blue") + theme_bw() +
            stat_summary(fun.data = give.n, geom = "text", fun = median,
                         position = position_dodge(width = 0.75), 
                         colour = "white", size = 2.5) + 
   theme(axis.title.y = element_blank(), axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(), axis.text.x=element_text(size=6),
-        plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0")) +
+        axis.ticks.y = element_blank(), axis.text.x=element_text(size=6)) +
     xlab(x)
 }
 # Combine plots
@@ -166,9 +165,7 @@ Auto_clean %>%
   geom_smooth(aes(CompRatio, MPG, col = EngType), method = "lm", 
               se = F, size = 0.25) + theme_bw() +
   xlab("Compression Ratio") + scale_color_discrete(name = "Fuel System") + 
-  theme(legend.position = "top",
-        plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0"),
-        legend.background = element_rect(fill = "#e2d4d0"))
+  theme(legend.position = "top")
 ```
 
 ### Correlation
@@ -180,8 +177,7 @@ To help us identify the variables' impact on *MPG*, we plot the correlation matr
 corr = round(cor(num_var), 1)
 # Plot the matrix
 ggcorrplot::ggcorrplot(corr, type = "lower", hc.order = TRUE, lab = TRUE,
-                       show.legend = FALSE, lab_size = 3, tl.cex = 12) +
-  theme(plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0"))
+                       show.legend = FALSE, lab_size = 3, tl.cex = 12) 
 ```
 
 ### Horsepower 
@@ -194,9 +190,7 @@ Auto_clean %>%
   geom_point(aes(Horsepower, MPG, col = Price_T, size = Cylinders), alpha = 0.6) + 
   theme_bw() + facet_grid(vars(Drive)) + 
   theme(legend.position = "top",
-        plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0"),
-        legend.background = element_rect(fill = "#e2d4d0"),
-        strip.background = element_rect(fill="#78544c"),
+        strip.background = element_rect(fill = "blue"),
         strip.text = element_text(colour = 'white')) + 
   viridis::scale_colour_viridis(name = "Price (K$)", direction = -1)
 ```
@@ -211,21 +205,15 @@ ggplot(Auto_clean, aes(Len, Wid, col = EngSiz)) +
   geom_point(alpha = 0.5, shape = 18, size = 3)  + 
   theme_bw() + xlab("Length of Car (inches)") + ylab("Width of Car (inches)") + 
   viridis::scale_colour_viridis(name = "Engine Size (cubic inches)", direction = -1) + 
-  theme(legend.position = "top", 
-        plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0"),
-        legend.background = element_rect(fill = "#e2d4d0"))
+  theme(legend.position = "top")
 ```
 ```{r, warning=FALSE, message=FALSE, fig.cap= "Cars engine", echo=FALSE}
 ggpubr::ggscatterhist(
   Auto_clean, x = "CurbWt", y = "EngSiz",
   color = "Cylinders", size = 2, alpha = 0.4,
   margin.params = list(fill = "Cylinders", colour = "black", size = 0.1),
-  
   xlab = "Curb Weight (lbs)",
-  ylab = "Engine Size (cubic inches)",
-  ggtheme = theme(plot.background = element_rect(fill = "#e2d4d0", color="#e2d4d0"),
-                  legend.background = element_rect(fill = "#e2d4d0"),
-                  panel.background = element_rect(fill = "white"))) 
+  ylab = "Engine Size (cubic inches)") 
 ```
 ### Price 
 
@@ -278,11 +266,11 @@ datatr[inv_cols] <- datatr[inv_cols]^-1
 lm2 <- lm(MPG ~ . + FuelSys:CompRatio, data = datatr)
 ```
 ```{r, fig.cap="Diagnostic plots for model with no transformed explanatory variables", echo = FALSE}
-par(mfrow=c(1,2), bg = "#e2d4d0")
+par(mfrow=c(1,2))
 plot(lm1, which=c(1,2), pch=20 )
 ```
 ```{r, fig.cap="Diagnostic plots for model with transformed explanatory variables", echo=FALSE}
-par(mfrow=c(1,2), bg = "#e2d4d0")
+par(mfrow=c(1,2))
 plot(lm2, which=c(1,2), pch=20)
 ```
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -302,7 +290,7 @@ Figure 2.1 and 2.2 suggest that despite the predictive power of our model, there
 
 As our main issue is the non-normality and heteroscedasticity of the errors which is not resolved by transforming the independent variables, we will now instead consider transforming our dependent variable: *MPG*. To find the optimal transformation, we will use what is called a "boxcox" transformation, where we aim to transform $y$ to $y^\lambda$ (or $\textrm{log}(y)$ in the case $\lambda=0$).
 ```{r boxcox, fig.cap= "Profile likelihood for boxcox transformation", echo=FALSE}
-par(mfrow=c(1,1), bg = "#e2d4d0")
+par(mfrow=c(1,1))
 MASS::boxcox(lm1)
 ```
 Using the boxcox function, we find that the optimal value of $\lambda$ for the transformation is approximately $-\frac{9}{10}$ (the $\lambda$ where the height of the curve is maximised), which corresponds to transforming $y=MPG$ into $y_{transformed}=MPG^{-\frac{9}{10}}$. However, the $95\%$ confidence interval for this $\lambda$ is approximately $[-1.1,-0.5]$ and as $-1$ lies in this confidence interval, which corresponds to the simpler transformation $y_{transformed}=\frac{1}{MPG}$, we shall use $\lambda=-1$ instead. This transforms our *MPG* variable into a variable giving the number of gallons needed on average to traverse one mile, which we shall refer to as *Gallons per Mile* (*GPM*).
@@ -317,7 +305,7 @@ colnames(datatrdep)[1] <- "GPM"
 lm3 <- lm(GPM ~ . + FuelSys:CompRatio, data=datatrdep)
 ```
 ```{r, echo=FALSE, fig.cap = "Diagnostic plots for Gallons per Mile model"}
-par(mfrow=c(1,3), bg = "#e2d4d0")
+par(mfrow=c(1,3))
 plot(lm3, which=c(1,2,5), pch=20)
 ```
 Our new model's $R^2$ increases to 0.94 with adjusted $R^2$ to 0.93, whilst having far less significant heteroscedasticity, residuals more evenly spread around zero, and a better Q-Q plot. This gives us the best of both worlds with a better fitting model which also obeys the modelling assumptions more. A drawback to using this transformation is that our model is no longer predicting the original *MPG*, but instead the inverse of this: *GPM*. However, we believe that *GPM* is still an intuitive idea that can be understood and we can still explain the trend in MPG since an increase in *GPM* indicates a decrease in fuel efficiency, i.e. *MPG*.
@@ -329,7 +317,7 @@ We do however note some concerning potential outliers. Looking at the Residuals 
 We will now consider a "Dffit" plot which shows by how much the predicted value of an observation changes when we fit a new model with that observation removed. Observations which have a large value are observations that are likely influential and distort the model as the large value shows that the model prediction changes significantly when they are not accounted for.
 
 ```{r Dffit, fig.cap= "Dffits plot showing observations 54 and 125 with large values", echo=FALSE}
-par(mfrow=c(1,1), bg = "#e2d4d0")
+par(mfrow=c(1,1))
 plot(dffits(lm3), ylab = "Difference in predicted value")
 ```
 In this plot we notice that observations $54$ and $125$ appear again. This adds to our concerns that these observations may be affecting the model.
@@ -337,7 +325,7 @@ In this plot we notice that observations $54$ and $125$ appear again. This adds 
 We will also consider "added variable" plots which show how much we can predict the $GPM$ with a specific variable after accounting for all other variables. These allow us to identify unusual observations and whether an explanatory variable provides useful information in our model. One such variable we will look into is *Price*. Whilst there is a strong correlation between *MPG* and *Price*, it is also reasonable to suspect that *Price* itself is a function of all the other data available about a car, and so, once other variables have been included, *Price* itself no longer provides any useful data, so the added variable plot should show no overall trend. Further, if *Price* were to have an effect, our model would give the conclusion that two otherwise identical cars could have widely different fuel efficiencies if one is sold at a different price to another which is clearly nonsense. However, inspecting the added variable plot for *Price* we do see a clear trend.
 
 ```{r, echo=FALSE, fig.cap = "Added variables plots"}
-par(mfrow=c(1,2), bg = "#e2d4d0")
+par(mfrow=c(1,2))
 car::avPlots(lm3, "Price")
 datatrdep <- datatrdep[-c(54, 125),]
 lm4 <- lm(GPM ~ . + FuelSys:CompRatio, data=datatrdep)
@@ -392,7 +380,7 @@ knitr::kable(round(tab,3), caption="$R^2$ of final model", booktabs = T) %>%
 ```
 
 ```{r, echo=FALSE, fig.cap = "Diagnostic plots for the final model"}
-par(mfrow=c(1,3), bg = "#e2d4d0")
+par(mfrow=c(1,3))
 plot(lmfin, which=c(1,2,5), pch=20)
 ```
 The diagnostic plots of our final model help to confirm the validity of our model. The Residuals vs Fitted plot exhibits little to no heteroscedasticity and our Q-Q plot very closely follows the straight line for all but two observations. Also, the Cook's distance plot shows there are no observations that cause significant concern as no observation is close to the $0.5$ contour which indicates outliers/potentially influential observations. As a result, we are confident that the model assumptions are being fulfilled and there are no influential observations that are distorting the model. In a further analysis we may wish to investigate the two observations that demonstrate relatively large residuals, but as they do not appear to be influential on the Cook's distance plot, we do not believe they are distorting the model and negatively affecting our inferences or model predictions.

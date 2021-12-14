@@ -57,10 +57,10 @@ library(gridExtra)   # For combining multiple ggplots
 library(readxl)      # For reading excel files
 
 # Load the data
-results_numbers &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Numbers.xlsx&quot;)
-results_unis &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Unis.xlsx&quot;)
-entries &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries_long.xlsx&quot;)
-entries_total &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries.xlsx&quot;)
+results_numbers &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Results_Numbers.xlsx&quot;)
+results_unis &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Results_Unis.xlsx&quot;)
+entries &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Entries_long.xlsx&quot;)
+entries_total &lt;- read_xlsx(&quot;/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Entries.xlsx&quot;)
 
 # Used later for bars ordering
 counts &lt;- entries %&gt;% count(University)
@@ -83,8 +83,7 @@ entries_total %&gt;%
   theme(axis.title.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.text.x = element_blank(),
-        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+        axis.text.x = element_blank()) +
   geom_text(aes(label = n), hjust = 1.25, col = &quot;white&quot;, size = 3)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:unnamed-chunk-2"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" alt="The number of couples from each university" width="672" />
@@ -111,8 +110,7 @@ plot_left &lt;- entries %&gt;%
   count(University) %&gt;%
   ggplot(aes(x = reorder(University, + n), n)) + geom_col(fill = &quot;darkred&quot;) +
   coord_flip() + theme_bw() + ylab(&quot;Count&quot;) +
-  theme(axis.title.y = element_blank(),
-        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+  theme(axis.title.y = element_blank()) +
   geom_text(aes(label = n), hjust = 1.25, col = &quot;white&quot;, size = 3)
 
 plot_right &lt;- ggplot(entries_and_counts_combined,
@@ -126,8 +124,7 @@ plot_right &lt;- ggplot(entries_and_counts_combined,
 coord_flip() + theme_bw() + ylab(&quot;Proportion&quot;) +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
-        legend.position = &quot;none&quot;,
-        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;)) +
+        legend.position = &quot;none&quot;) +
   scale_fill_manual(&quot;Category&quot;,
                     values = RColorBrewer::brewer.pal(n = 5, name = &quot;Reds&quot;))
 
@@ -360,9 +357,7 @@ ggplot(data = df) + geom_col(aes(Var1, Freq, fill = &quot;All&quot;)) +
   theme(axis.title.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.text.x = element_blank(),
-        plot.background = element_rect(fill = &quot;#e2d4d0&quot;, color = &quot;#e2d4d0&quot;),
-        legend.background = element_rect(fill = &quot;#e2d4d0&quot;)) +
+        axis.text.x = element_blank()) +
   geom_text(data = df, aes(Var1, Freq, label = Freq), 
             hjust = 1.25, col = &quot;black&quot;, size = 3) +
   geom_text(data = df2, aes(Var1, Freq, label = Freq), 

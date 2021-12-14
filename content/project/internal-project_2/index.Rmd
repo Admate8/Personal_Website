@@ -50,10 +50,10 @@ library(gridExtra)   # For combining multiple ggplots
 library(readxl)      # For reading excel files
 
 # Load the data
-results_numbers <- read_xlsx("/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Numbers.xlsx")
-results_unis <- read_xlsx("/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Results_Unis.xlsx")
-entries <- read_xlsx("/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries_long.xlsx")
-entries_total <- read_xlsx("/Users/adrianwisnios/Desktop/Warwick_Varsity_20_11_21_Data/Entries.xlsx")
+results_numbers <- read_xlsx("/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Results_Numbers.xlsx")
+results_unis <- read_xlsx("/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Results_Unis.xlsx")
+entries <- read_xlsx("/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Entries_long.xlsx")
+entries_total <- read_xlsx("/Users/adrianwisnios/Desktop/For_Website_Others/Warwick_Varsity_20_11_21_Data/Entries.xlsx")
 
 # Used later for bars ordering
 counts <- entries %>% count(University)
@@ -78,8 +78,7 @@ entries_total %>%
   theme(axis.title.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.text.x = element_blank(),
-        plot.background = element_rect(fill = "#e2d4d0", color = "#e2d4d0")) +
+        axis.text.x = element_blank()) +
   geom_text(aes(label = n), hjust = 1.25, col = "white", size = 3)
 ```
 
@@ -104,8 +103,7 @@ plot_left <- entries %>%
   count(University) %>%
   ggplot(aes(x = reorder(University, + n), n)) + geom_col(fill = "darkred") +
   coord_flip() + theme_bw() + ylab("Count") +
-  theme(axis.title.y = element_blank(),
-        plot.background = element_rect(fill = "#e2d4d0", color = "#e2d4d0")) +
+  theme(axis.title.y = element_blank()) +
   geom_text(aes(label = n), hjust = 1.25, col = "white", size = 3)
 
 plot_right <- ggplot(entries_and_counts_combined,
@@ -119,8 +117,7 @@ plot_right <- ggplot(entries_and_counts_combined,
 coord_flip() + theme_bw() + ylab("Proportion") +
   theme(axis.title.y = element_blank(),
         axis.text.y = element_blank(),
-        legend.position = "none",
-        plot.background = element_rect(fill = "#e2d4d0", color = "#e2d4d0")) +
+        legend.position = "none") +
   scale_fill_manual("Category",
                     values = RColorBrewer::brewer.pal(n = 5, name = "Reds"))
 
@@ -277,9 +274,7 @@ ggplot(data = df) + geom_col(aes(Var1, Freq, fill = "All")) +
   theme(axis.title.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.text.x = element_blank(),
-        plot.background = element_rect(fill = "#e2d4d0", color = "#e2d4d0"),
-        legend.background = element_rect(fill = "#e2d4d0")) +
+        axis.text.x = element_blank()) +
   geom_text(data = df, aes(Var1, Freq, label = Freq), 
             hjust = 1.25, col = "black", size = 3) +
   geom_text(data = df2, aes(Var1, Freq, label = Freq), 

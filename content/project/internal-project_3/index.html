@@ -1,0 +1,700 @@
+---
+title: Bankruptcy
+summary: Predicting companies going bust.
+tags:
+- Data Cleaning
+- EDA
+- Linear Modelling
+date: "2021-12-14"
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: yes
+
+# Optional external URL for project (replaces project detail page).
+#external_link: ""
+
+image:
+  caption: Photo by Towfiqu Barbhuiya on Unsplash
+  focal_point: Smart
+
+links:
+- icon: github
+  icon_pack: fab
+  name: Find the code and data here.
+  url: https://github.com/Admate8/DC3_14_12_21
+  
+#url_code: ""
+#url_pdf: ""
+#url_slides: ""
+#url_video: ""
+
+# Slides (optional).
+#   Associate this project with Markdown slides.
+#   Simply enter your slide deck's filename without extension.
+#   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
+#   Otherwise, set `slides = ""`.
+#slides: ""
+---
+
+<script src="{{< blogdown/postref >}}index_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index_files/lightable/lightable.css" rel="stylesheet" />
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction-and-data-preprocessing"><span class="toc-section-number">1</span> Introduction and Data Preprocessing</a></li>
+<li><a href="#explanatory-data-analysis"><span class="toc-section-number">2</span> Explanatory Data Analysis</a><ul>
+<li><a href="#preliminaries"><span class="toc-section-number">2.1</span> Preliminaries</a></li>
+<li><a href="#variables-ralationships"><span class="toc-section-number">2.2</span> Variables Ralationships</a><ul>
+<li><a href="#correlation"><span class="toc-section-number">2.2.1</span> Correlation</a></li>
+<li><a href="#short-and-long-term-obligations"><span class="toc-section-number">2.2.2</span> Short and Long-Term Obligations</a></li>
+<li><a href="#remaining-predictors"><span class="toc-section-number">2.2.3</span> Remaining Predictors</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#modelling"><span class="toc-section-number">3</span> Modelling</a><ul>
+<li><a href="#class-imbalance"><span class="toc-section-number">3.1</span> Class Imbalance</a><ul>
+<li><a href="#the-need-of-validation-set"><span class="toc-section-number">3.1.1</span> The Need of Validation Set</a></li>
+</ul></li>
+<li><a href="#model-selection"><span class="toc-section-number">3.2</span> Model Selection</a><ul>
+<li><a href="#proposed-models"><span class="toc-section-number">3.2.1</span> Proposed Models</a></li>
+<li><a href="#backward-selection"><span class="toc-section-number">3.2.2</span> Backward Selection</a></li>
+<li><a href="#lasso-method"><span class="toc-section-number">3.2.3</span> LASSO Method</a></li>
+<li><a href="#optimal-probability-cutoffs"><span class="toc-section-number">3.2.4</span> Optimal Probability Cutoffs</a></li>
+<li><a href="#models-comparison"><span class="toc-section-number">3.2.5</span> Models Comparison</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#further-analysis"><span class="toc-section-number">4</span> Further Analysis</a></li>
+</ul>
+</div>
+
+<div id="introduction-and-data-preprocessing" class="section level1">
+<h1><span class="header-section-number">1</span> Introduction and Data Preprocessing</h1>
+<p>This report aims to investigate the subset of a financial dataset, , introduced from the UCI Repository by Tomczak et al. (2016). With the help of a logistic regression model, we try to predict the probability of company bankruptcy in terms of various financial indicators.</p>
+<p><code>PolishBR</code> contains 291 missing values. After closer inspection, we discovered that cost of products sold (<em>CostPrS</em>) and current liabilities (<em>CLiabil</em>) are missing together in 266 observations. The remaining missing values also seem to be missing together with other variables. That indicates that these are not missing at random, and we cannot use any imputation method on them.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-1"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" alt="Missing values" width="672" />
+<p class="caption">
+Figure 1.1: Missing values
+</p>
+</div>
+<p>However, noting the size of our data, we can safely ignore these values altogether. However, further investigation would be essential because the proportion of companies that went bankrupt in the data made of observations containing some missing information is about 0.127, while in the <em>complete</em> data it is only about 0.061.</p>
+<p>After removing missing values, we end up with 5218 observations of 11 variables, two of which are categorical (factor type).</p>
+</div>
+<div id="explanatory-data-analysis" class="section level1">
+<h1><span class="header-section-number">2</span> Explanatory Data Analysis</h1>
+<div id="preliminaries" class="section level2">
+<h2><span class="header-section-number">2.1</span> Preliminaries</h2>
+<p>The distributions of numerical predictors are highly skewed to the right and contain multiple extreme outliers. Naturally, we expect some unusually high values in the tail of distributions. However, there is one suspicious observation that looks more like a mistake considering other values of this variable:</p>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 2.1: </span>Suspicious observation</caption>
+<colgroup>
+<col width="5%" />
+<col width="9%" />
+<col width="10%" />
+<col width="6%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="8%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">bust</th>
+<th align="right">TAssets</th>
+<th align="right">TLiabil</th>
+<th align="left">WkCap</th>
+<th align="right">TSales</th>
+<th align="right">StLiabil</th>
+<th align="right">CAssets</th>
+<th align="right">OpExp</th>
+<th align="right">BookVal</th>
+<th align="right">CostPrS</th>
+<th align="right">CLiabil</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">5.961368</td>
+<td align="right">-2568.575</td>
+<td align="left">Low</td>
+<td align="right">391.1075</td>
+<td align="right">69.77781</td>
+<td align="right">31.27302</td>
+<td align="right">382.3126</td>
+<td align="right">2025.989</td>
+<td align="right">382.311</td>
+<td align="right">78.91632</td>
+</tr>
+</tbody>
+</table>
+<p>Since we cannot determine the nature of such a high negative value of total liabilities (<em>TLiabil</em>), we decided to discard this observation.</p>
+<p>After the literature review, we found out that the book value of equity (<em>BookVal</em>) can be calculated by subtracting total liabilities from total assets, i.e.
+<span class="math display">\[\begin{align*}
+\text{Book value of equity} = \text{Total assets} - \text{Total libilities}.
+\end{align*}\]</span>
+Indeed, these values look alike (accounting for the rounding error and few unusual observations). Table 2.2 displays the difference between <em>BookVal</em> and a variable calculated according to the formula above.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 2.2: </span>Book value of equity difference</caption>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-1911.97</td>
+<td align="right">-1.67</td>
+<td align="right">0</td>
+<td align="right">-3.04</td>
+<td align="right">0</td>
+<td align="right">0.14</td>
+</tr>
+</tbody>
+</table>
+<p>Furthermore, the working capital (<em>WkCap</em>) can be calculated by subtracting current liabilities (<em>CLiabil</em>) from current assets (<em>CAssets</em>). However, since we are given categorical labels for this variable, we decided to retain it in its original form.</p>
+<p><strong>A word on current liabilities</strong></p>
+<p>The data does not provide any explanation of the difference between current and short-term liabilities. Many sources use these terms interchangeably to quantify financial accountabilities to be settled within the fiscal year of the operating cycle. However, plotting these variables against one another shows almost perfect alignment up to some point where the pattern breaks. Furthermore, one would expect the current liabilities to be part of total liabilities - similarly, current assets to be included in total assets. Even though the data supports the latter, it does not justify the former. Nonetheless, short-term liabilities do behave as expected concerning total liabilities, and therefore, we believe they are more reliable in our analysis. From now onwards, unless otherwise stated, we shall treat short-term liabilities (<em>StLiabil</em>) as current liabilities and use these terms interchangeably.</p>
+</div>
+<div id="variables-ralationships" class="section level2">
+<h2><span class="header-section-number">2.2</span> Variables Ralationships</h2>
+<p>The percentage of companies that went bankrupt split by their working capital is presented in Table 2.3. 16% of companies with low working capital became insolvent. This number drastically decreases for medium, high and very high working capital, suggesting that this variable could be a valuable predictor.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2.3: </span>Working capital and bust (%)</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Low</th>
+<th align="right">Medium</th>
+<th align="right">High</th>
+<th align="right">Very High</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">84</td>
+<td align="right">95.1</td>
+<td align="right">97.1</td>
+<td align="right">98.94</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">16</td>
+<td align="right">4.9</td>
+<td align="right">2.9</td>
+<td align="right">1.06</td>
+</tr>
+</tbody>
+</table>
+<div id="correlation" class="section level3">
+<h3><span class="header-section-number">2.2.1</span> Correlation</h3>
+<p>It is always a good practice to examine the correlation between explanatory variables. Figure 2.1 shows the correlation plots for <em>raw</em> and transformed variables. To produce the second plot, we used log-transformation on all numerical predictors, but <em>BookVal</em>, which for now, has been discarded.
+We can see how the extreme outliers impact the correlation (especially <em>CostPrS</em> and <em>CLiabil</em>) and how a simple transformation can reduce their effect.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-6"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" alt="Correlation plots" width="672" />
+<p class="caption">
+Figure 2.1: Correlation plots
+</p>
+</div>
+<p>Not surprisingly, the correlation between liabilities and assets (be it current, short-term or total) is high. We note an almost perfect correlation between operating expenses (<em>OpExp</em>) and total sales (<em>TSales</em>). Plotting these variables does not reveal much. However, we may reason that as the company grows, it produces and sells more goods (high <em>TSales</em>), and its operating expenses tend to increase accordingly. Therefore, in this case, the company’s size might be a lurking variable responsible for such a strong correlation between these variables. Perhaps unexpectedly, operating expenses and the cost of products sold are highly correlated. It turns out that in about 60% of observations, operating expenses observations are almost identical (+-1) to the cost of products sold (correlation of 0.999). Data does not give any indication of why such a perfect relationship exists.</p>
+</div>
+<div id="short-and-long-term-obligations" class="section level3">
+<h3><span class="header-section-number">2.2.2</span> Short and Long-Term Obligations</h3>
+<p>Let introduce a measure helping us quantifying companies liquidity (ability to pay debts as when they fall due):
+<span class="math display">\[\begin{align*}
+\text{Current ratio} = \frac{\text{Current Assets}}{\text{Current liabilities}}.
+\end{align*}\]</span>
+A ratio lover than 1 suggests that short-term (within one fiscal year) liabilities are greater than accessible assets. Next, we investigate the relationship between going bankrupt and the current ratio. Table 2.4 displays the percentage of companies that went bankrupt and had the current ratio below or above 1. We can see that almost 17% of companies, having a ratio lower than 1, became insolvent.</p>
+<table>
+<caption><span id="tab:unnamed-chunk-8">Table 2.4: </span>Current ratio and bust</caption>
+<thead>
+<tr class="header">
+<th align="left">Ratio_Below_1</th>
+<th align="left">Bust</th>
+<th align="right">Percent_bust</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">no</td>
+<td align="left">no</td>
+<td align="right">96.46</td>
+</tr>
+<tr class="even">
+<td align="left">no</td>
+<td align="left">yes</td>
+<td align="right">3.54</td>
+</tr>
+<tr class="odd">
+<td align="left">yes</td>
+<td align="left">no</td>
+<td align="right">83.07</td>
+</tr>
+<tr class="even">
+<td align="left">yes</td>
+<td align="left">yes</td>
+<td align="right">16.93</td>
+</tr>
+</tbody>
+</table>
+<p>To measure companies capabilities to meet their long-term financial obligations, consider the following metric:
+<span class="math display">\[\begin{align*}
+\text{Shareholder Equity Ratio} =\frac{\text{Book value of equity}}{\text{Total assets}}.
+\end{align*}\]</span>
+Hight Equity Ratio indicates that the company effectively manages its finances, and therefore, it will be able to meet its long-term financial liabilities Companies with Shareholder Equity Ratios bigger than 0.5 are considered conservative because they rely mainly on the stakeholders’ equity rather than on debt. On the other hand, a company with a ratio smaller than 0.5 has a substantial amount of debt in its capital structure - it is called a leveraged company. If the ratio is considerably small, the company’s financial liabilities might outweigh its income.</p>
+
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-10"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" alt="Equity ratio relationships" width="672" />
+<p class="caption">
+Figure 2.2: Equity ratio relationships
+</p>
+</div>
+<p>We can see that companies that went bankrupt tend to have smaller Shareholder Equity Ratios and low-to-medium working capital. This observation indicates that the ratio could help determine the likelihood of becoming bankrupt. The negative Equity Ratio is an indication of financially dangerous struggles. It is, therefore, no surprise that among 246 companies with a negative ratio, over 28% became insolvent.</p>
+</div>
+<div id="remaining-predictors" class="section level3">
+<h3><span class="header-section-number">2.2.3</span> Remaining Predictors</h3>
+<p>So far, we have investigated how assets, liabilities and their combination, such as equity ratio, can be used to explain a company’s finances and impact the probability of a company going bankrupt. We are left with three predictors to examine. Consider Figure 2.3 showing log-transformed variables plotted against log odds ratio. We can see that for all cases, the variable’s values increase results in a (more or less apparent) decrease in log odds ratio, that is, the lower the odds of a company going bankrupt. This decrease is the most evident for total sales. Intuitively, more sales imply more income and more financial stability. It is less obvious why operating expenses and the cost of goods sold can decrease the odds ratio. As mentioned earlier, we suspect that these measures indicate the company’s size and growth, generally speaking. Therefore, it may explain the present trends. Plotting log odds ratio against current or total liabilities, however, presents the opposite relation - the bigger the debt and financial obligations, the bigger the chance of going bankrupt.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-12"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" alt="Remaining predictors" width="672" />
+<p class="caption">
+Figure 2.3: Remaining predictors
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="modelling" class="section level1">
+<h1><span class="header-section-number">3</span> Modelling</h1>
+<div id="class-imbalance" class="section level2">
+<h2><span class="header-section-number">3.1</span> Class Imbalance</h2>
+<p>Before we begin the modelling, it is crucial to address a critical issue our data exhibits, namely the class imbalance. As noted in the EDA, companies that went bankrupt constitute only about 6.1% of the dataset. That means this category is rare, and the logistic regression model will struggle to predict this particular outcome. If we do not find a solution taking into account this fact, predicting non-bankruptcy will always be better, in terms of accuracy, than predicting insolvency. The context is of vital importance here. Failing to predict bankruptcy is far more dangerous than anticipating it where it will not actually occur. The model’s predictions could be used as a precaution, and the company could take appropriate measures regardless of the outcome. We can translate this scenario into the model’s sensitivity and specificity. Here, we are willing to sacrifice some specificity (predicting a company going bankrupt when it fact it will not) in order to increase sensitivity (forecasting a company not going bankrupt when, in fact, it will). As logistic regression returns predicting probabilities vector, a question now arises: how do we decide on the optimal probability threshold for assigning an observation to either class?</p>
+<div id="the-need-of-validation-set" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> The Need of Validation Set</h3>
+<p>We use the following steps to find the best logistic model. First, we created dummy variables from the <em>WkCap</em> variable with the baseline <code>Low</code> level. Then, the data was split into three subsets - training, validating and testing set (in proportions 0.7, 0.15 and 0.15, respectively). We ensure that each set contains the same proportion of companies that went bankrupt (<em>Bust</em> = 1) by utilising the <code>caret</code> package and <code>createDataPartition</code> function. All proposed models <em>learn</em> on the training set. Then, using the validation set, we find the optimal probability cutoff for the binary classification. To do that, we plot the model’s sensitivity and specificity against the probability thresholds and find a value for which they coincide. A similar procedure is implemented for all proposed models. Finally, we compare models’ class predictions on the testing set to choose the best performing model.</p>
+</div>
+</div>
+<div id="model-selection" class="section level2">
+<h2><span class="header-section-number">3.2</span> Model Selection</h2>
+<div id="proposed-models" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> Proposed Models</h3>
+<p>We have trained the following models:</p>
+<ul>
+<li><p><code>Model_Base</code>: The first model includes all predictive variables without any transformation or altering - this will serve as the base simple model for comparison.</p></li>
+<li><p><code>Model_Red_Back</code>: To fit this model, we take advantage of the findings from explanatory data analysis. First, we account for the right skeweness of numeric predictors by using the log transformation. By the discussion in Section 2.1, we replace <em>BookVal</em> by its proper definition, and discard <em>CLiabil</em>. We also add two ratios defined in Section 2.2.2. Finally, we reduce the initial model using automated stepwise selection method (at 5% significance level).</p></li>
+<li><p><code>Model_Red_LASSO</code>: Reduce the initial model (the same as for <code>Model_Red_Back</code>) using LASSO method.</p></li>
+</ul>
+</div>
+<div id="backward-selection" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> Backward Selection</h3>
+<p>Let us breifly explain how the backward selection method works.
+In each step we inspected tests’ p-values and locate the highest one. These numbers provided us with indication whether a variable is needed in a model or not. For example, consider an initial full model trained on all the explanatory variables:</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-14">Table 3.1: </span>Initial model
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+LR Chisq
+</th>
+<th style="text-align:right;">
+Df
+</th>
+<th style="text-align:right;">
+Pr(&gt;Chisq)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BookVal
+</td>
+<td style="text-align:right;">
+2.8124580
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0935350
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WkCap_Medium
+</td>
+<td style="text-align:right;">
+17.7609456
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0000250
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WkCap_High
+</td>
+<td style="text-align:right;">
+10.8656209
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0009797
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WkCap_Very_High
+</td>
+<td style="text-align:right;">
+12.2031590
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0004771
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CRatio
+</td>
+<td style="text-align:right;">
+3.1352778
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0766153
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ERatio
+</td>
+<td style="text-align:right;">
+0.4024692
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.5258168
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_TAssets
+</td>
+<td style="text-align:right;">
+1.5626008
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.2112848
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_TLiabil
+</td>
+<td style="text-align:right;">
+0.3936412
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.5303916
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_TSales
+</td>
+<td style="text-align:right;">
+60.2769767
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_StLiabil
+</td>
+<td style="text-align:right;">
+3.3798478
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0659981
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_CAssets
+</td>
+<td style="text-align:right;">
+2.3323638
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.1267093
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_OpExp
+</td>
+<td style="text-align:right;">
+54.4311741
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+log_CostPrS
+</td>
+<td style="text-align:right;">
+0.3844665
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.5352225
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can see that the p-value for <em>log_CostPrS</em> is the biggest of them all. That means we have evidence to think it is equal to zero, and therefore, to remove it from the model. Next, we fit the model again, but without <em>log_CostPrS</em>, and discard another variable with the biggest p-value. The process continues until we obtain only substantial predictors, that is, variables for which we have strong evidence (in terms of p-value) that are needed in the model. In our case, such predictors are summarised in table below.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-15">Table 3.2: </span>Model_Red_Back coefficients
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+(Intercept)
+</th>
+<th style="text-align:right;">
+BookVal
+</th>
+<th style="text-align:right;">
+WkCap_Medium
+</th>
+<th style="text-align:right;">
+WkCap_High
+</th>
+<th style="text-align:right;">
+WkCap_Very_High
+</th>
+<th style="text-align:right;">
+log_TAssets
+</th>
+<th style="text-align:right;">
+log_TSales
+</th>
+<th style="text-align:right;">
+log_OpExp
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+-0.8033
+</td>
+<td style="text-align:right;">
+-0.0083
+</td>
+<td style="text-align:right;">
+-1.1994
+</td>
+<td style="text-align:right;">
+-1.2588
+</td>
+<td style="text-align:right;">
+-1.7954
+</td>
+<td style="text-align:right;">
+-0.3177
+</td>
+<td style="text-align:right;">
+-3.6474
+</td>
+<td style="text-align:right;">
+3.7647
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Coefficients interpretation</strong></p>
+<p>We can interpret any coefficient from Table 3.2. For example, consider <em>BookVal</em> coefficient. Its number means that an increase of book value of equity by one unit, while keeping other variables constant, results in the odd ratio of <span class="math inline">\(\exp(-0.0083)=0.9917\)</span>, i.e. the odds of going bankrupt decrease by less than 1%. Similarly, for the <em>WkCap_Very High</em> coefficient, <span class="math inline">\(\exp(-1.7954)=0.1661\)</span>, i.e. the odds of going bankrupt for campnies with high working capital decrease by 83.4%. According to this model, only operating expenses increase the odds of going bankrupt - this suggests reevaluation, or reconsidering the model bearing in mind findings from the EDA.</p>
+</div>
+<div id="lasso-method" class="section level3">
+<h3><span class="header-section-number">3.2.3</span> LASSO Method</h3>
+<p>Another way to reduce the full model is the shrinkage approach. Using the LASSO method we aim to minimise
+<span class="math display">\[\begin{align*}
+\sum_{i=1}^{n} (y_i-\bf{x}^{T}_i\hat{\bf{\beta}})^2+\lambda\sum_{j}^{p} |\hat{\beta_j}|
+\end{align*}\]</span>
+i.e. we impose extra condition on the parameter estimates to <em>shrink</em> the model. Commonly, we use cross-validation to choose the optimal <span class="math inline">\(\lambda\)</span> which can be realised by function  in package . However, we obtain different results for the final model if we repeat this process several times, which means instability of the final result by this method. To address this issue, we use bootstrap, repeating the procedure 100 times to find the average of optimal lambdas, which should stabilise the model. Then we plot the trace to ensure the reasonability of this choice.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="optimal-probability-cutoffs" class="section level3">
+<h3><span class="header-section-number">3.2.4</span> Optimal Probability Cutoffs</h3>
+<p>We exploit the validation set to find the optimal probability thresholds for each of the models. By using the same validation set for all models we ensure a fair decision on the best performing model, i.e. choosing an optimal cutoff values will not interfere with predictions on the testing set.</p>
+<p>Let us assess each model on the validation set. Figure 3.1 presents the sensitivity and specificity values of <code>Model_Red_Back</code> for different probability thresholds.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:unnamed-chunk-17"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-17-1.png" alt="Optimal probability cutoff" width="672" />
+<p class="caption">
+Figure 3.1: Optimal probability cutoff
+</p>
+</div>
+<p>The blue dashed line indicates the optimum. Note that if we used default classification probability of 0.5, model’s accuracy would increase to almost 0.95 with extremely high specificity - 0.99, but disappointingly poor sensitivity - only 0.15. Accuracy, in such a case, would be artificially inflated and the model would be unreliable. This is because accuracy-wise, it is better to always predict that a company will not go bankrupt. In a similar way, we find the optimal probability threshold for <code>Model_Red_LASSO</code>.</p>
+</div>
+<div id="models-comparison" class="section level3">
+<h3><span class="header-section-number">3.2.5</span> Models Comparison</h3>
+<p>Table 3.3 summarises some of the performance metrics for all four models.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-18">Table 3.3: </span>Models comparison
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Model_Base
+</th>
+<th style="text-align:right;">
+Model_Red_Back
+</th>
+<th style="text-align:right;">
+Model_Red_LASSO
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Accuracy
+</td>
+<td style="text-align:right;">
+0.948
+</td>
+<td style="text-align:right;">
+0.754
+</td>
+<td style="text-align:right;">
+0.706
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Kappa
+</td>
+<td style="text-align:right;">
+0.241
+</td>
+<td style="text-align:right;">
+0.199
+</td>
+<td style="text-align:right;">
+0.168
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sensitivity
+</td>
+<td style="text-align:right;">
+0.149
+</td>
+<td style="text-align:right;">
+0.787
+</td>
+<td style="text-align:right;">
+0.830
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Specificity
+</td>
+<td style="text-align:right;">
+0.999
+</td>
+<td style="text-align:right;">
+0.752
+</td>
+<td style="text-align:right;">
+0.698
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Parameters
+</td>
+<td style="text-align:right;">
+13.000
+</td>
+<td style="text-align:right;">
+8.000
+</td>
+<td style="text-align:right;">
+9.000
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can see that even though <code>Model_Base</code> seems highly accurate, its low sensitivity makes it worthless. Kappa is a better metric in assessing model fit in a case of class imbalance. It suggests our models fit the data only slightly. Nevertheless, <code>Model_Red_Back</code> looks the best accounting for all metrics.</p>
+</div>
+</div>
+</div>
+<div id="further-analysis" class="section level1">
+<h1><span class="header-section-number">4</span> Further Analysis</h1>
+<p>Some additional work could include:</p>
+<ul>
+<li>Proper investigation for data with missing values.</li>
+<li>Other methods for dealing with class imbalance, such as SMOTE algorithm, could be implemented and compared with our models.</li>
+<li>More carefull examination of extreme values.</li>
+<li>More extensive data analysis - perhaps consulting with a specialist would shed light on some patterns we may have missed in our analysis.</li>
+<li>Adding interactions and/or non-linear terms.</li>
+<li>Trying different models, e.g. random forest or kNN.</li>
+</ul>
+</div>

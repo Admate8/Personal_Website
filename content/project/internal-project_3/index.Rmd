@@ -1,0 +1,522 @@
+---
+title: Bankruptcy
+summary: Predicting companies going bust.
+tags:
+- Data Cleaning
+- EDA
+- Linear Modelling
+date: "2021-12-14"
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: yes
+
+# Optional external URL for project (replaces project detail page).
+#external_link: ""
+
+image:
+  caption: Photo by Towfiqu Barbhuiya on Unsplash
+  focal_point: Smart
+
+links:
+- icon: github
+  icon_pack: fab
+  name: Find the code and data here.
+  url: https://github.com/Admate8/DC3_14_12_21
+  
+#url_code: ""
+#url_pdf: ""
+#url_slides: ""
+#url_video: ""
+
+# Slides (optional).
+#   Associate this project with Markdown slides.
+#   Simply enter your slide deck's filename without extension.
+#   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
+#   Otherwise, set `slides = ""`.
+#slides: ""
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = 'center', fig.pos = "!h")
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+load("/Users/adrianwisnios/Desktop/Masters/Part 1/ST952 An Introduction to Statistical Practice /Assignment 2/PolishBR.Rdata")
+```
+
+# Introduction and Data Preprocessing 
+
+This report aims to investigate the subset of a financial dataset, \verb|PolishBR|, introduced from the UCI Repository by Tomczak et al. (2016). With the help of a logistic regression model, we try to predict the probability of company bankruptcy in terms of various financial indicators. 
+
+`PolishBR` contains 291 missing values. After closer inspection, we discovered that cost of products sold (*CostPrS*) and current liabilities (*CLiabil*) are missing together in 266 observations. The remaining missing values also seem to be missing together with other variables. That indicates that these are not missing at random, and we cannot use any imputation method on them. 
+
+```{r, fig.cap="Missing values"}
+# Missing values investigation
+naniar::gg_miss_upset(PolishBR)
+```
+
+However, noting the size of our data, we can safely ignore these values altogether. However, further investigation would be essential because the proportion of companies that went bankrupt in the data made of observations containing some missing information is about 0.127, while in the *complete* data it is only about 0.061.
+
+After removing missing values, we end up with 5218 observations of 11 variables, two of which are categorical (factor type).
+
+```{r, include=FALSE}
+# Missing values investigation
+naniar::gg_miss_upset(PolishBR)
+PolishBR_clean <- PolishBR %>% na.omit()
+
+# Check the proportion in bust for missing/non-missing data
+Missing <- PolishBR[rowSums(is.na(PolishBR)) > 0, ]
+Not_missing <- PolishBR %>% na.omit()
+
+Missing %>% count(bust) %>% summarise(bust, Prop = n/sum(n))
+Not_missing %>% count(bust) %>% summarise(bust, Prop = n/sum(n))
+```
+
+# Explanatory Data Analysis
+## Preliminaries
+
+The distributions of numerical predictors are highly skewed to the right and contain multiple extreme outliers. Naturally, we expect some unusually high values in the tail of distributions. However, there is one suspicious observation that looks more like a mistake considering other values of this variable:
+
+```{r}
+knitr::kable((PolishBR_clean %>% filter(TLiabil < 0)),
+             caption = "Suspicious observation", booktabs = T)
+
+PolishBR_clean <- PolishBR_clean %>% filter(TLiabil > 0)
+```
+
+Since we cannot determine the nature of such a high negative value of total liabilities (*TLiabil*), we decided to discard this observation. 
+
+After the literature review, we found out that the book value of equity (*BookVal*) can be calculated by subtracting total liabilities from total assets, i.e. 
+\begin{align*}
+\text{Book value of equity} = \text{Total assets} - \text{Total libilities}.
+\end{align*}
+Indeed, these values look alike (accounting for the rounding error and few unusual observations). Table 2.2 displays the difference between *BookVal* and a variable calculated according to the formula above.
+
+```{r}
+# Check that BookVal can be found using TAssets and TLiabil
+check <- PolishBR_clean %>% 
+  mutate(BookVal_2 = TAssets - TLiabil,
+         Diff = BookVal - BookVal_2)
+
+knitr::kable(t(round(summary(check$Diff), 2)), 
+             caption = "Book value of equity difference", booktabs = T)
+```
+
+Furthermore, the working capital (*WkCap*) can be calculated by subtracting current liabilities (*CLiabil*) from current assets (*CAssets*). However, since we are given categorical labels for this variable, we decided to retain it in its original form. 
+
+**A word on current liabilities**
+
+The data does not provide any explanation of the difference between current and short-term liabilities. Many sources use these terms interchangeably to quantify financial accountabilities to be settled within the fiscal year of the operating cycle. However, plotting these variables against one another shows almost perfect alignment up to some point where the pattern breaks. Furthermore, one would expect the current liabilities to be part of total liabilities - similarly, current assets to be included in total assets. Even though the data supports the latter, it does not justify the former. Nonetheless, short-term liabilities do behave as expected concerning total liabilities, and therefore, we believe they are more reliable in our analysis. From now onwards, unless otherwise stated, we shall treat short-term liabilities (*StLiabil*) as current liabilities and use these terms interchangeably. 
+
+## Variables Ralationships
+
+The percentage of companies that went bankrupt split by their working capital is presented in Table 2.3. 16\% of companies with low working capital became insolvent. This number drastically decreases for medium, high and very high working capital, suggesting that this variable could be a valuable predictor. 
+
+```{r}
+# Proportion table for WkCap and bust
+basic_table <- table(PolishBR_clean$WkCap, PolishBR_clean$bust)
+prop_table <- round(prop.table(basic_table, margin = 1) * 100, 2)
+
+knitr::kable(t(prop_table), caption = "Working capital and bust (%)")
+```
+
+### Correlation
+
+It is always a good practice to examine the correlation between explanatory variables. Figure 2.1 shows the correlation plots for *raw* and transformed variables. To produce the second plot, we used log-transformation on all numerical predictors, but *BookVal*, which for now, has been discarded.
+We can see how the extreme outliers impact the correlation (especially *CostPrS* and *CLiabil*) and how a simple transformation can reduce their effect. 
+
+```{r, fig.cap="Correlation plots"}
+#knitr::kable(summary(PolishBR_clean))
+# Left-hand side plot
+cor_1 <- ggcorrplot::ggcorrplot(round(cor(PolishBR_clean[,-c(1,4)]), 2), lab = T, type = "lower", show.legend = FALSE, lab_size = 2, tl.cex = 8, title = "No Transformation")
+
+PolishBR_clean_logs <- PolishBR_clean %>%
+  filter(TLiabil > 0) %>%
+  mutate(TAssets = log(TAssets),
+         TLiabil = log(TLiabil),
+         TSales = log(TSales),
+         StLiabil = log(StLiabil),
+         CAssets = log(CAssets),
+         OpExp = log(OpExp),
+         CostPrS = log(CostPrS),
+         CLiabil = log(CLiabil)) %>%
+  select(-BookVal)
+
+# Right-hand side plot
+cor_2 <- ggcorrplot::ggcorrplot(round(cor(PolishBR_clean_logs[,-c(1,4)]), 2), lab = T, type = "lower", show.legend = FALSE, lab_size = 2, tl.cex = 8,
+                                title = "Transformed Variables") 
+
+grid.arrange(cor_1, cor_2, nrow = 1, ncol = 2)
+```
+
+Not surprisingly, the correlation between liabilities and assets (be it current, short-term or total) is high. We note an almost perfect correlation between operating expenses (*OpExp*) and total sales (*TSales*). Plotting these variables does not reveal much. However, we may reason that as the company grows, it produces and sells more goods (high *TSales*), and its operating expenses tend to increase accordingly. Therefore, in this case, the company's size might be a lurking variable responsible for such a strong correlation between these variables. Perhaps unexpectedly, operating expenses and the cost of products sold are highly correlated. It turns out that in about 60\% of observations, operating expenses observations are almost identical (+-1) to the cost of products sold (correlation of 0.999). Data does not give any indication of why such a perfect relationship exists.
+
+```{r, include=FALSE}
+# Proportion of about 60%
+the_same <- PolishBR_clean %>%
+  mutate(Diff = OpExp - CostPrS,
+         is_the_same = case_when(
+           abs(Diff) < 1 ~ "almost identical",
+           TRUE ~ "Different"
+         )) 
+
+the_same %>% count(is_the_same) %>% summarise(prop = n/sum(n))
+for_cor <- the_same %>% filter(is_the_same == "almost identical")
+
+# Correlation of 0.9999998
+cor(for_cor$OpExp, for_cor$CostPrS)
+```
+
+### Short and Long-Term Obligations
+
+Let introduce a measure helping us quantifying companies liquidity (ability to pay debts as when they fall due):
+\begin{align*}
+\text{Current ratio} = \frac{\text{Current Assets}}{\text{Current liabilities}}.
+\end{align*}
+A ratio lover than 1 suggests that short-term (within one fiscal year) liabilities are greater than accessible assets. Next, we investigate the relationship between going bankrupt and the current ratio. Table 2.4 displays the percentage of companies that went bankrupt and had the current ratio below or above 1. We can see that almost 17\% of companies, having a ratio lower than 1, became insolvent. 
+  
+```{r, message=FALSE, warning=FALSE}
+table_CRatio <- PolishBR %>%
+  na.omit() %>%
+  mutate(CRatio = CAssets/StLiabil,
+         Ratio_Below_1 = ifelse(CRatio < 1, "yes", "no")) %>%
+  group_by(Ratio_Below_1) %>%
+  count(bust) %>%
+  summarise(Bust = ifelse(bust == 1, "yes", "no"),
+            Percent_bust = round((n / sum(n) * 100), 2))
+
+knitr::kable(table_CRatio, caption = "Current ratio and bust")
+```
+
+To measure companies capabilities to meet their long-term financial obligations, consider the following metric:
+\begin{align*}
+\text{Shareholder Equity Ratio} =\frac{\text{Book value of equity}}{\text{Total assets}}.
+\end{align*}
+Hight Equity Ratio indicates that the company effectively manages its finances, and therefore, it will be able to meet its long-term financial liabilities Companies with Shareholder Equity Ratios bigger than 0.5 are considered conservative because they rely mainly on the stakeholders' equity rather than on debt. On the other hand, a company with a ratio smaller than 0.5 has a substantial amount of debt in its capital structure - it is called a leveraged company. If the ratio is considerably small, the company's financial liabilities might outweigh its income. 
+
+```{r}
+plot_bust <- PolishBR %>%
+  na.omit() %>%
+  mutate(Equity_Ratio = (TAssets - TLiabil) / TAssets)  %>%
+  filter(between(Equity_Ratio,0,1)) %>%
+  ggplot(aes(bust, Equity_Ratio)) + 
+  geom_boxplot(fill = "cyan") +
+  geom_hline(yintercept = 0.5, col = "red", lty = 2) + 
+  theme_bw() +
+  xlab("Bust") + ylab("Shareholder Equity Ratio") 
+
+plot_WkCap <- PolishBR %>%
+  na.omit() %>%
+  mutate(Equity_Ratio = (TAssets - TLiabil) / TAssets)  %>%
+  filter(between(Equity_Ratio,0,1)) %>%
+  ggplot(aes(WkCap, Equity_Ratio)) + 
+  geom_boxplot(fill = "blue") +
+  geom_hline(yintercept = 0.5, col = "red", lty = 2) + 
+  theme_bw() +
+  xlab("Working Capital") + theme(axis.title.y = element_blank(),
+                                  axis.ticks.y = element_blank(),
+                                  axis.text.y = element_blank()) 
+```
+\clearpage
+```{r, fig.cap="Equity ratio relationships"}
+grid.arrange(plot_bust, plot_WkCap, ncol = 2, nrow = 1)
+```
+
+We can see that companies that went bankrupt tend to have smaller Shareholder Equity Ratios and low-to-medium working capital. This observation indicates that the ratio could help determine the likelihood of becoming bankrupt. The negative Equity Ratio is an indication of financially dangerous struggles. It is, therefore, no surprise that among 246 companies with a negative ratio, over 28\% became insolvent.
+
+```{r, include=FALSE}
+# 70/246 (28.46%) companies with negative Equity ratio went bankrupt
+PolishBR %>%
+  na.omit() %>%
+  mutate(Equity_Ratio = (TAssets - TLiabil) / TAssets)  %>%
+  filter(Equity_Ratio < 0) %>%
+  count(bust) %>%
+  summarise(Percent = n/sum(n) * 100)
+```
+
+### Remaining Predictors
+
+So far, we have investigated how assets, liabilities and their combination, such as equity ratio, can be used to explain a company's finances and impact the probability of a company going bankrupt. We are left with three predictors to examine. Consider Figure 2.3 showing log-transformed variables plotted against log odds ratio. We can see that for all cases, the variable's values increase results in a (more or less apparent) decrease in log odds ratio, that is, the lower the odds of a company going bankrupt. This decrease is the most evident for total sales. Intuitively, more sales imply more income and more financial stability. It is less obvious why operating expenses and the cost of goods sold can decrease the odds ratio. As mentioned earlier, we suspect that these measures indicate the company's size and growth, generally speaking. Therefore, it may explain the present trends. Plotting log odds ratio against current or total liabilities, however, presents the opposite relation - the bigger the debt and financial obligations, the bigger the chance of going bankrupt.
+
+```{r, fig.cap="Remaining predictors"}
+library(Stat2Data)
+
+myemplogit <- function(yvar = y,xvar = x, maxbins = 10, line=TRUE, ...){
+  breaks  <<- unique(quantile(xvar, probs = 0:maxbins/maxbins))
+  levs  <<- (cut(xvar, breaks, include.lowest = FALSE))
+  num <<- as.numeric(levs)
+  emplogitplot1(yvar ~ xvar, breaks = breaks, showline = line, ...)
+}
+
+par(mfrow=c(1,3))
+myemplogit(PolishBR_clean$bust,
+           PolishBR_clean_logs$OpExp,
+           50, xlab="Operating expenses (log)", ylim = c(-4.5, -1.4)) 
+myemplogit(PolishBR_clean$bust,
+           PolishBR_clean_logs$TSales,
+           50, xlab="Total sales (log)", ylim = c(-4.5, -1.4))
+myemplogit(PolishBR_clean$bust,
+           PolishBR_clean_logs$CostPrS,
+           50, xlab="Cost of products sold (log)", ylim = c(-4.5, -1.4)) 
+```
+
+# Modelling 
+## Class Imbalance
+
+Before we begin the modelling, it is crucial to address a critical issue our data exhibits, namely the class imbalance. As noted in the EDA, companies that went bankrupt constitute only about 6.1% of the dataset. That means this category is rare, and the logistic regression model will struggle to predict this particular outcome. If we do not find a solution taking into account this fact, predicting non-bankruptcy will always be better, in terms of accuracy, than predicting insolvency. The context is of vital importance here. Failing to predict bankruptcy is far more dangerous than anticipating it where it will not actually occur. The model's predictions could be used as a precaution, and the company could take appropriate measures regardless of the outcome. We can translate this scenario into the model's sensitivity and specificity. Here, we are willing to sacrifice some specificity (predicting a company going bankrupt when it fact it will not) in order to increase sensitivity (forecasting a company not going bankrupt when, in fact, it will). As logistic regression returns predicting probabilities vector, a question now arises: how do we decide on the optimal probability threshold for assigning an observation to either class?
+
+### The Need of Validation Set
+
+We use the following steps to find the best logistic model. First, we created dummy variables from the *WkCap* variable with the baseline `Low` level. Then, the data was split into three subsets - training, validating and testing set (in proportions 0.7, 0.15 and 0.15, respectively). We ensure that each set contains the same proportion of companies that went bankrupt (*Bust* = 1) by utilising the `caret` package and `createDataPartition` function. All proposed models *learn* on the training set. Then, using the validation set, we find the optimal probability cutoff for the binary classification. To do that, we plot the model's sensitivity and specificity against the probability thresholds and find a value for which they coincide. A similar procedure is implemented for all proposed models. Finally, we compare models' class predictions on the testing set to choose the best performing model. 
+
+## Model Selection
+### Proposed Models
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+library(caret)
+library(fastDummies)
+library(glmnet)
+library(ROCR)
+
+# Remove negative TLiabil value
+PolishBR_clean_ready <- PolishBR %>% na.omit() %>% filter(TLiabil > 0)
+
+# Create dummy variables for WkCap (with Low as the base category)
+PolishBR_clean_ready <- dummy_cols(PolishBR_clean_ready, select_columns = "WkCap",
+                                   remove_first_dummy = TRUE) %>%
+  select(-WkCap)
+
+colnames(PolishBR_clean_ready)[13] <- "WkCap_Very_High"
+
+set.seed(3456)
+split <- createDataPartition(PolishBR_clean_ready$bust, p = 0.7, list = FALSE)
+train <- PolishBR_clean_ready[split, ]
+validate_and_test <- PolishBR_clean_ready[-split, ]
+validate_and_test_split <- createDataPartition(validate_and_test$bust,
+                                               p = 0.5, list = FALSE)
+validate <- validate_and_test[validate_and_test_split, ]
+test <- validate_and_test[-validate_and_test_split, ]
+
+#########################################################
+### Model_Base
+# Basic model, no transformations, no cutoff adjustment 
+#########################################################
+model_base <- glm(bust ~ ., data = train, family = binomial)
+model_base_pred_t <- predict(model_base, test[-1], type = "response")
+pred_final <- as.data.frame(model_base_pred_t) %>%
+  mutate(Prediction = ifelse(model_base_pred_t > 0.5, 1, 0)) %>%
+  select(Prediction)
+cMatrix <- confusionMatrix(table(pred_final$Prediction, test$bust), 
+                           positive = "1")
+Number_Params <- nrow(as.data.frame(coef(model_base)))
+Model_Base <- rbind(as.data.frame(round(c(cMatrix$overall[c("Accuracy", "Kappa")],
+                   cMatrix$byClass[c("Sensitivity", "Specificity")]), 3)),
+                   Parameters = Number_Params)
+
+#########################################################
+### Data Preparations for further modelling
+#########################################################
+
+# Transform the data
+Data_Transformed <- PolishBR_clean_ready %>%
+  mutate(BookVal = TAssets - TLiabil,
+         CRatio = CAssets/StLiabil,
+         ERatio = BookVal/TAssets,
+         log_TAssets = log(TAssets),
+         log_TLiabil = log(TLiabil),
+         log_TSales = log(TSales),
+         log_StLiabil = log(StLiabil),
+         log_CAssets = log(CAssets),
+         log_OpExp = log(OpExp),
+         log_CostPrS = log(CostPrS)) %>%
+  select(-TAssets, - TLiabil, -TSales, -StLiabil, 
+         -CAssets, -OpExp, -CostPrS, -CLiabil)
+
+# Split on train/validate/test  
+set.seed(3456)
+split <- createDataPartition(Data_Transformed$bust, p = 0.7, list = FALSE)
+train <- Data_Transformed[split, ]
+validate_and_test <- Data_Transformed[-split, ]
+validate_and_test_split <- createDataPartition(validate_and_test$bust,
+                                               p = 0.5, list = FALSE)
+validate <- validate_and_test[validate_and_test_split, ]
+test <- validate_and_test[-validate_and_test_split, ]
+
+#########################################################
+### A function for finding the optimal probability cutoff
+#########################################################
+
+optimal_cutoff <- function(model, validate){
+  # Find the optimal cutoff
+  predictions <- prediction(model, validate[1])
+  sens <- data.frame(x=unlist(performance(predictions, "sens")@x.values), 
+                   y=unlist(performance(predictions, "sens")@y.values))
+  spec <- data.frame(x=unlist(performance(predictions, "spec")@x.values), 
+                   y=unlist(performance(predictions, "spec")@y.values))
+  optimal <- sens[which.min(apply(sens, 1, 
+                                function(x) min(colSums(abs(t(spec) - x))))), 1]
+ 
+  # Visualise the cutoff 
+  optimal_plot <- sens %>% 
+    ggplot(aes(x, y)) + 
+    geom_line() + 
+    geom_line(data = spec, aes(x, y , col = "red")) +
+    scale_y_continuous(sec.axis = sec_axis(~ . , name = "Specificity")) +
+    labs(x = 'Cutoff', y = "Sensitivity") +
+    theme_bw() +
+    theme(axis.title.y.right = element_text(colour = "red"),
+          legend.position = "none") +
+    geom_vline(xintercept = optimal, col = "blue", lty = 2)
+  
+   return(list(optimal, optimal_plot))
+}
+
+#########################################################
+### Model_Red_Back
+# Transformed variables with added features. Reduced using stepwise selection
+#########################################################
+
+# Train the model
+model_back <- glm(bust ~ ., family = binomial, data = train)
+model_red_back <- step(model_back, direction = "both",
+                         test = "Chisq", k = 3.841)
+
+# Find the optimal cutoff probability
+model_red_back_pred_v <- predict(model_red_back, validate[-1], type = "response")
+optimal <- optimal_cutoff(model_red_back_pred_v, validate)[[1]]
+
+# Assess performance
+model_red_back_pred_t <- predict(model_red_back, test[-1], type = "response")
+pred_final <- as.data.frame(model_red_back_pred_t) %>%
+  mutate(Prediction = ifelse(model_red_back_pred_t > optimal, 1, 0)) %>%
+  select(Prediction)
+cMatrix <- confusionMatrix(table(pred_final$Prediction, test$bust),
+                           positive = "1")
+Number_Params <- nrow(as.data.frame(coef(model_red_back)))
+Model_Red_Back <- rbind(as.data.frame(round(c(cMatrix$overall[c("Accuracy", "Kappa")],
+                   cMatrix$byClass[c("Sensitivity", "Specificity")]), 3)), 
+                   Parameters = Number_Params)
+
+#########################################################
+### Model_Red_LASSO
+# Transformed variables with added features. Reduced using LASSO selection
+#########################################################
+
+# Train the model
+model_red_lasso <- glmnet(train[, -1], train[, 1], family = "binomial", alpha = 1)
+
+# Find an optimal value of lambda using cross-validation on the training set using bootstrap
+lambdas <- c()
+for (i in 1:100){
+  cv_model <- cv.glmnet(as.matrix(train[, -1]), train[, 1], 
+                        family = "binomial", alpha = 1)
+  lambdas[i] <- cv_model$lambda.1se
+}
+lambda_optimal <- mean(lambdas)
+
+# Find the cutoff using validation set
+model_red_lasso_pred_v <- predict(model_red_lasso, s = lambda_optimal,
+                                 newx = as.matrix(validate[-1]))
+optimal <- optimal_cutoff(model_red_lasso_pred_v, validate)[[1]]
+
+# Assess performance
+model_red_lasso_pred_t <- predict(model_red_lasso, s = lambda_optimal,
+                             newx = as.matrix(test[-1]))
+pred_final <- as.data.frame(model_red_lasso_pred_t) %>%
+  mutate(Prediction = ifelse(model_red_lasso_pred_t > optimal, 1, 0)) %>%
+  select(Prediction)
+cMatrix <- confusionMatrix(table(pred_final$Prediction, test$bust),
+                           positive = "1")
+coeffs_model_red_lasso <- as.data.frame(as.matrix(coef(model_red_lasso,
+                                                       s = lambda_optimal)))
+non_zero_coeffs_red_lasso <- coeffs_model_red_lasso %>% filter(s1 != 0)
+Number_Params <- nrow(non_zero_coeffs_red_lasso)
+names(non_zero_coeffs_red_lasso) <- ""
+Model_Red_LASSO <- rbind(as.data.frame(round(c(cMatrix$overall[c("Accuracy", "Kappa")],
+                   cMatrix$byClass[c("Sensitivity", "Specificity")]), 3)),
+                   N_of_Pred = Number_Params)
+```
+
+We have trained the following models:
+
+* `Model_Base`: The first model includes all predictive variables without any transformation or altering - this will serve as the base simple model for comparison. 
+
+* `Model_Red_Back`: To fit this model, we take advantage of the findings from explanatory data analysis. First, we account for the right skeweness of numeric predictors by using the log transformation. By the discussion in Section 2.1, we replace *BookVal* by its proper definition, and discard *CLiabil*. We also add two ratios defined in Section 2.2.2. Finally, we reduce the initial model using automated stepwise selection method (at 5% significance level). 
+
+* `Model_Red_LASSO`: Reduce the initial model (the same as for `Model_Red_Back`) using LASSO method.
+
+### Backward Selection
+
+Let us breifly explain how the backward selection method works.
+In each step we inspected tests' p-values and locate the highest one. These numbers provided us with indication whether a variable is needed in a model or not. For example, consider an initial full model trained on all the explanatory variables:
+
+```{r, warning=FALSE, message=FALSE}
+library(car)
+knitr::kable(Anova(model_back), caption = "Initial model", booktabs = T) %>%
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+We can see that the p-value for *log_CostPrS* is the biggest of them all. That means we have evidence to think it is equal to zero, and therefore, to remove it from the model. Next, we fit the model again, but without *log_CostPrS*, and discard another variable with the biggest p-value. The process continues until we obtain only substantial predictors, that is, variables for which we have strong evidence (in terms of p-value) that are needed in the model. In our case, such predictors are summarised in table below.
+
+```{r}
+knitr::kable(t(round(coef(model_red_back), 4)),
+             caption="Model_Red_Back coefficients", booktabs = T) %>%
+  kableExtra::kable_styling(latex_options = c("scale", "HOLD_position"))
+``` 
+
+**Coefficients interpretation**
+
+We can interpret any coefficient from Table 3.2. For example, consider *BookVal* coefficient. Its number means that an increase of book value of equity by one unit, while keeping other variables constant, results in the odd ratio of $\exp(-0.0083)=0.9917$, i.e. the odds of going bankrupt decrease by less than 1%. Similarly, for the *WkCap_Very High* coefficient, $\exp(-1.7954)=0.1661$, i.e. the odds of going bankrupt for campnies with high working capital decrease by 83.4%. According to this model, only operating expenses increase the odds of going bankrupt - this suggests reevaluation, or reconsidering the model bearing in mind findings from the EDA.
+
+### LASSO Method
+
+Another way to reduce the full model is the shrinkage approach. Using the LASSO method we aim to minimise
+\begin{align*}
+\sum_{i=1}^{n} (y_i-\bf{x}^{T}_i\hat{\bf{\beta}})^2+\lambda\sum_{j}^{p} |\hat{\beta_j}|
+\end{align*}
+i.e. we impose extra condition on the parameter estimates to *shrink* the model. Commonly, we use cross-validation to choose the optimal $\lambda$ which can be realised by function \verb|cv.glmnet| in package \verb|glmnet|. However, we obtain different results for the final model if we repeat this process several times, which means instability of the final result by this method. To address this issue, we use bootstrap, repeating the procedure 100 times to find the average of optimal lambdas, which should stabilise the model. Then we plot the trace to ensure the reasonability of this choice. 
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+plot(model_red_lasso, "lambda", label = T) 
+abline(v = log(lambda_optimal), lty = 2)
+text(-4.9, -3, expression(lambda))
+```
+
+### Optimal Probability Cutoffs
+
+We exploit the validation set to find the optimal probability thresholds for each of the models. By using the same validation set for all models we ensure a fair decision on the best performing model, i.e. choosing an optimal cutoff values will not interfere with predictions on the testing set.
+
+Let us assess each model on the validation set. Figure 3.1 presents the sensitivity and specificity values of `Model_Red_Back` for different probability thresholds. 
+
+```{r, fig.cap="Optimal probability cutoff"}
+optimal_cutoff(model_red_back_pred_v, validate)[[2]]
+```
+
+The blue dashed line indicates the optimum. Note that if we used default classification probability of 0.5, model's accuracy would increase to almost 0.95 with extremely high specificity - 0.99, but disappointingly poor sensitivity - only 0.15. Accuracy, in such a case, would be artificially inflated and the model would be unreliable. This is because accuracy-wise, it is better to always predict that a company will not go bankrupt. In a similar way, we find the optimal probability threshold for `Model_Red_LASSO`.
+
+### Models Comparison
+
+Table 3.3 summarises some of the performance metrics for all four models.
+
+```{r, warning=FALSE, message=FALSE}
+all_models_comparison <- cbind(Model_Base, Model_Red_Back, Model_Red_LASSO)
+names(all_models_comparison) <- c("Model_Base", "Model_Red_Back", "Model_Red_LASSO")
+knitr::kable(all_models_comparison,
+             caption="Models comparison", booktabs = T) %>%
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+We can see that even though `Model_Base` seems highly accurate, its low sensitivity makes it worthless. Kappa is a better metric in assessing model fit in a case of class imbalance. It suggests our models fit the data only slightly. Nevertheless, `Model_Red_Back` looks the best accounting for all metrics. 
+
+# Further Analysis
+
+Some additional work could include:
+
+* Proper investigation for data with missing values.
+* Other methods for dealing with class imbalance, such as SMOTE algorithm, could be implemented and compared with our models.
+* More carefull examination of extreme values.
+* More extensive data analysis - perhaps consulting with a specialist would shed light on some patterns we may have missed in our analysis.
+* Adding interactions and/or non-linear terms.
+* Trying different models, e.g. random forest or kNN.
