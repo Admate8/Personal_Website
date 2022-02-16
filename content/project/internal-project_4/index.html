@@ -1,0 +1,267 @@
+---
+title: Optimal Model Performance
+summary: Loss, risk, variance-bias tradeoff. 
+tags:
+- Theory
+- Linear Modelling
+date: "2022-02-16"
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: false
+
+# Optional external URL for project (replaces project detail page).
+#external_link: ""
+
+image:
+  caption: Photo by Christophe Hautier on Unsplash
+  focal_point: Smart
+
+links:
+- icon: github
+  icon_pack: fab
+  name: Find the full code here.
+  url: https://github.com/Admate8/C4_16_02_22
+  
+#url_code: ""
+#url_pdf: ""
+#url_slides: ""
+#url_video: ""
+
+# Slides (optional).
+#   Associate this project with Markdown slides.
+#   Simply enter your slide deck's filename without extension.
+#   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
+#   Otherwise, set `slides = ""`.
+#slides: ""
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#some-theory">Some Theory</a>
+<ul>
+<li><a href="#loss-and-risk">Loss and Risk</a></li>
+<li><a href="#squared-error-loss-and-the-optimal-risk">Squared error loss and the optimal risk</a></li>
+<li><a href="#empirical-risk">Empirical Risk</a></li>
+</ul></li>
+<li><a href="#how-it-works-in-practice">How it works in practice</a>
+<ul>
+<li><a href="#set-up">Set up</a></li>
+<li><a href="#model-complexity">Model Complexity</a></li>
+<li><a href="#training-samples">Training Samples</a></li>
+</ul></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+
+<div id="some-theory" class="section level2">
+<h2>Some Theory</h2>
+<p>In this short article, I will take advantage of the latest work on statistical learning theory to discuss why perfect data fit is not necessarily what one should aim for. We shall investigate how the prediction error changes for a polynomial regression when increasing the model complexity and the number of training examples. But first, let us talk about the loss and the risk.</p>
+<div id="loss-and-risk" class="section level3">
+<h3>Loss and Risk</h3>
+<p>Suppose we know the predictors <span class="math inline">\(X \in\mathcal{X}\)</span>, and we wish to make accurate predictions of <span class="math inline">\(Y \in\mathcal{Y}\)</span>, i.e. <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are random variables (or vectors) that have outcomes in <span class="math inline">\(\mathcal{X}\)</span> and <span class="math inline">\(\mathcal{Y}\)</span> respectively.
+We can translate the intuition behind “how well a model does” by investigating how off it is from predicting the actual observations. Let’s say we have some function <span class="math inline">\(f \in\mathcal{F}\)</span> that takes predictors as its input and outputs the predictions, i.e. <span class="math inline">\(f: \mathcal{X}\mapsto\mathcal{Y}\)</span>. Then a loss function “rewards” our function if it predicts the outcome close to the actual, or “punishes” it when it is far from the truth. This reward-punish strategy translates into assigning an appropriate (positive) value - a score, i.e. 
+<span class="math display">\[\begin{align*}
+L: \mathcal{Y}\times\mathcal{Y}\mapsto\mathbb{R}^+
+\end{align*}\]</span>
+To put it simply, a loss function measures the overall difference between predictions and reality - we want this difference to be as little as possible.
+What if we gave <span class="math inline">\(f\)</span> different predictors <span class="math inline">\(X\)</span>? How about different outcomes <span class="math inline">\(Y\)</span>? We wish to know how our model performs <em>on average</em> over different <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> - this is where the risk comes in, let’s creatively call it <span class="math inline">\(R\)</span>. In other words, <span class="math inline">\(R:\mathcal{F}\mapsto\mathbb{R}^+\)</span> is given by
+<span class="math display">\[\begin{align*}
+R(f) = \mathbb{E}_{X,Y}[L(Y,f(X))].
+\end{align*}\]</span></p>
+</div>
+<div id="squared-error-loss-and-the-optimal-risk" class="section level3">
+<h3>Squared error loss and the optimal risk</h3>
+<p>One of the most common loss functions is the squared error loss. As the name suggests, it is simply the square of the difference between <span class="math inline">\(Y\)</span> and predictions <span class="math inline">\(f(X)\)</span>, i.e.
+<span class="math display">\[\begin{align*}
+L(Y,f(X)) = (Y-f(X))^2
+\end{align*}\]</span>
+How does the risk look like under this function?
+<span class="math display">\[\begin{align*}
+R(f)=\mathbb{E}_{X,Y}[L(Y,f(X)]=\mathbb{E}_{X,Y}[(Y-f(X))^2]= \mathbb{E}_X[\underbrace{\mathbb{E}_{Y}[(Y-f(X))^2|X]}_\text{consider first}]
+\end{align*}\]</span>
+(where we used the fact that <span class="math inline">\(\mathbb{E}[Y]=\mathbb{E}[\mathbb{E}[Y|X]]\)</span>, the towering property of expectations). We have
+<span class="math display">\[\begin{align*}
+\mathbb{E}_{Y}[(Y-f(X))^2|X]&amp;=\mathbb{E}_Y[Y^2-\underbrace{2f(X)}_\text{not depend on $Y$}Y+\underbrace{f(X)^2}_\text{not depend on $Y$}|X]\\
+&amp;= \mathbb{E}_Y[Y^2|X]-2f(X)\mathbb{E}_Y[Y|X]+f(X)^2\\
+&amp;=\mathbb{E}_Y[Y^2|X]\underbrace{-(\mathbb{E}_Y[Y|X])^2+(\mathbb{E}_Y[Y|X])^2}_\text{subtract and add the same thing}-2f(X)\mathbb{E}_Y[Y|X]+f(X)^2\\
+&amp;= \mathrm{Var}_Y[Y|X]+ (\mathbb{E}_Y[Y|X]-f(X))^2.
+\end{align*}\]</span>
+That can already tell us a lot! Notice that whatever function <span class="math inline">\(f\)</span> we consider, we will always end up with a variance term that is completely independent of it, i.e. there is the irreducible error due to the randomness in <span class="math inline">\(Y\)</span> that cannot be captured by <span class="math inline">\(f\)</span>. <strong>We can never predict perfectly</strong> unless there is a deterministic relationship between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. Coming back to the risk
+<span class="math display">\[\begin{align*}
+R(f) = \mathbb{E}_X[\mathrm{Var}_Y[Y|X]] + \mathbb{E}_X[(\mathbb{E}_Y[Y|X]-f(X))^2].
+\end{align*}\]</span>
+we can ask what the best <span class="math inline">\(f\)</span> we can come up with is? Well, it is equivalent to asking which <span class="math inline">\(f\)</span> minimises the risk. It is easy to see that the second term becomes zero when
+<span class="math display">\[\begin{align*}
+f^*(X)=\mathbb{E}_Y[Y|X].
+\end{align*}\]</span>
+This is the <em>optimal</em> solution.</p>
+</div>
+<div id="empirical-risk" class="section level3">
+<h3>Empirical Risk</h3>
+<p>All is nice and clear, and we have our solution. However, we do not know the joint distribution of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, and therefore, finding the risk and exact function is impossible. So what is the solution? Our data!
+Let’s call it <span class="math inline">\(\mathcal{T}=\{(X_i,Y_i)\}_{i=1}^n\)</span> - <span class="math inline">\(n\)</span> realisations of random variables (or vectors) <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. The natural metric we can use instead of the <em>acutal</em> average is the <em>empirical average</em> - and this is how we define the <em>empirical risk</em>
+<span class="math display">\[\begin{align*}
+\hat R(f)=\frac{1}{n}\sum_{i=1}^nL(Y_i, f(X_i)).
+\end{align*}\]</span>
+The law of large numbers ensures that when the sample size increases, <span class="math inline">\(\hat R(f)\)</span> approaches the “true” risk <span class="math inline">\(R(f)\)</span> for any <span class="math inline">\(f\in\mathcal{F}\)</span>.</p>
+</div>
+</div>
+<div id="how-it-works-in-practice" class="section level1">
+<h1>How it works in practice</h1>
+<div id="set-up" class="section level2">
+<h2>Set up</h2>
+<p>Suppose the “true” function (in reality not available to us) of one predictor is<br />
+<span class="math display">\[\begin{align*}
+f^*(x) = \left(x-2\right)^{2}\left(x-1\right)x\left(x+1\right).
+\end{align*}\]</span>
+Now, we create an artificial sample of 450 observations from <span class="math inline">\(f^*\)</span> (for <span class="math inline">\(x\)</span> between -1 and 2). We add random noise from the normal distribution of mean zero and variance 1 to each observation. Then we plot the sample and the “true” function used to generate it.</p>
+<pre class="r"><code>library(tidyverse)
+f_star = function(x){return((x-2)^2*(x-1)*x*(x+1))}
+set.seed(1)
+x = runif(450, -1, 2)
+
+observations = f_star(x) + rnorm(450, 0, 1)
+
+sample = data_frame(&#39;x&#39; = x, &#39;y&#39; = observations)
+true_values = data.frame(&#39;x&#39; = x, &#39;y&#39; = f_star(x))
+  
+ggplot(sample, aes(x, y, colour = &quot;Sample&quot;)) + 
+  geom_point(alpha = 0.5, shape = 20) + 
+  geom_line(data = true_values, aes(colour = &quot;f*(x)&quot;)) + 
+  scale_colour_manual(&quot;&quot;, 
+                      breaks = c(&quot;Sample&quot;, &quot;f*(x)&quot;),
+                      values = c(&quot;black&quot;, &quot;blue&quot;)) + 
+  theme_bw() +
+  labs(title = &quot;The sample and the true function&quot;) +
+  theme(plot.title = element_text(hjust=0.5), legend.position = &quot;top&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" />
+What is the estimated risk of <span class="math inline">\(f^*\)</span> under the squared loss function? We use the formula above:
+<span class="math display">\[\begin{align*}
+\hat R(f^*) = \frac{1}{n}\sum_{i=1}^n(Y_i-f^*(X_i))^2
+\end{align*}\]</span></p>
+<pre class="r"><code>sum((sample$y - f_star(sample$x))^2) / length(sample$x)</code></pre>
+<pre><code>## [1] 1.099824</code></pre>
+<p>This number is not coincidental. Previously, we showed the existence of the irreducible error due to randomness in <span class="math inline">\(Y\)</span> - in our case, this randomness has been added artificially as a random noise with variance 1 - hence we obtain approximately this value.</p>
+<p>How do the prediction error change when the complexity of the model changes?</p>
+</div>
+<div id="model-complexity" class="section level2">
+<h2>Model Complexity</h2>
+<p>Imagine that we do not know <span class="math inline">\(f^*\)</span> and wish to discover it using polynomial regression - a more realistic scenario. We observed the data , and we will use a part of it (training set) to develop a model and the remaining data to see how it performs (testing set). Let’s use the first 40 observations to train the model.</p>
+<p>We train 11 models of increasing complexity, starting from a model of just an intercept up to the one with terms up to and including <span class="math inline">\(x^{10}\)</span>.</p>
+<pre class="r"><code>train = sample[1:40, ]
+test = sample[41:450, ]
+
+# Getting empirical risks given a regression 
+get_errors &lt;- function(reg){
+  pred_test &lt;- predict(reg, test[,1])
+
+  train_error &lt;- sum((reg$residuals)^2) / 40
+  test_error &lt;- sum((test[,2] - pred_test)^2) / 410
+  
+  return(c(train_error, test_error))
+}
+
+# These will store our outcomes
+training_outcomes = c()
+testing_outcomes = c()
+
+# Regression with just an intercept
+reg0 &lt;- lm(y ~ (1), data = train)
+training_outcomes[1] = get_errors(reg0)[1]
+testing_outcomes[1] = get_errors(reg0)[2]
+
+# Polynomial regressions of increasing complexity
+for (i in 1:10){
+  reg &lt;- lm(y ~ poly(x, i), data = train)
+  training_outcomes[i+1] = get_errors(reg)[1]
+  testing_outcomes[i+1] = get_errors(reg)[2]
+}
+
+complexity &lt;- seq(0,10)
+
+outcomes = data.frame(cbind(complexity, training_outcomes, testing_outcomes))
+
+# Plot the results
+ggplot(outcomes, aes(complexity, training_outcomes, colour = &quot;Training&quot;)) + 
+  geom_line() +
+  geom_line(aes(complexity, testing_outcomes, colour = &quot;Test&quot;)) + 
+  theme_bw() +
+  scale_x_continuous(labels = as.character(complexity), breaks = complexity) +
+  labs(title = &quot;Prediction error against model complexity&quot;,
+       x = &quot;Complexity&quot;, y = &quot;Prediction Error&quot;)+
+  theme(plot.title = element_text(hjust=0.5), legend.position = &quot;top&quot;) +
+  geom_text(x = 1.5, y = 2, label = &quot;Underfit&quot;, inherit.aes = FALSE) +
+  geom_text(x = 9, y = 2, label = &quot;Overfit&quot;, inherit.aes = FALSE) +
+  geom_text(x = 5, y = 1.5, label = &quot;Optimal&quot;, inherit.aes = FALSE, colour = &quot;red&quot;) +
+  geom_vline(xintercept = 5, linetype = &quot;dashed&quot;, colour = &quot;red&quot;, size = 0.25) +
+  scale_colour_manual(&quot;&quot;, 
+                      breaks = c(&quot;Training&quot;, &quot;Test&quot;),
+                      values = c(&quot;blue&quot;, &quot;yellow&quot;)) </code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" />
+When the models’ complexity is low, we can see that both the training and testing sets generate significant errors. The model is not complex enough to capture the patterns in our data, i.e. we <strong>underfit</strong>. The more complex the models become, the smaller the errors on the training set - we fit the data more and more until we fit perfectly (including the noise, which is, of course, undesirable). On the other hand, the errors of the testing set become smaller up to the optimal point, where they start to increase again because our model fits the noise and does not generalise well, i.e. we <strong>overfit</strong> the data.</p>
+<p>The middle area is the sweet spot - the balance between accurate training fit and good generalisation over the testing set. It is therefore not surprising that the best performing model (giving the smallest test error) is the one of order 5 - the same as our “true” function <span class="math inline">\(f^*\)</span>.</p>
+<p>Let’s see how our newly found regression compares to the actual <span class="math inline">\(f^*\)</span>.</p>
+<pre class="r"><code>best_reg_points &lt;- data.frame(&#39;x&#39; = sample$x, 
+                              &#39;y&#39; = lm(y ~ poly(x, 5), data = sample)$fitted.values)
+
+ggplot(train, aes(x, y, colour = &quot;Training points&quot;)) + geom_point(alpha = 0.5) + 
+  geom_point(data = test, aes(x, y,  colour = &quot;Test points&quot;), alpha = 0.5) +
+  geom_line(data = best_reg_points, aes(x, y, colour = &quot;Best model&quot;)) +
+  geom_line(data = true_values, aes(x, y, colour = &quot;f*(x)&quot;)) + 
+  theme_bw() +
+  scale_colour_manual(&quot;&quot;, 
+                      breaks = c(&quot;Training points&quot;, &quot;Test points&quot;, &quot;Best model&quot;, &quot;f*(x)&quot;),
+                      values = c(&quot;blue&quot;, &quot;yellow&quot;, &quot;red&quot;, &quot;black&quot;)) +
+  labs(title = &quot;The best performing model&quot;) +
+  theme(plot.title = element_text(hjust=0.5), legend.position = &quot;top&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" />
+Not bad! Our model fits very well and often overlaps the “true” function <span class="math inline">\(f^*\)</span>.</p>
+<p>Note the danger of extrapolation! The regression we found fits well only within the defined region, and we have no reason to assume it will look like <span class="math inline">\(f^*\)</span> beyond it.</p>
+</div>
+<div id="training-samples" class="section level2">
+<h2>Training Samples</h2>
+<p>How do these errors behave when we keep increasing the training sample size? Let’s stick with the best model we found previously. We will train it on varying training sample sizes, <span class="math inline">\(n=10,11,...,50\)</span> and each time use the remaining data to find the testing error.</p>
+<p>Then we plot the training sample size <span class="math inline">\(n\)</span> against the prediction errors for the training and testing sets. Here’s what we get:</p>
+<pre class="r"><code>training_n = c()
+testing_n = c()
+
+for (n in 10:50){
+  train &lt;- sample[1:n,]
+  test &lt;- na.omit(sample[n+1:450,])
+  
+  reg &lt;- lm(y ~ poly(x, 5), data = train)
+  pred_test &lt;- predict(reg, test[,1])
+  
+  training_n[n-9] = sum((reg$residuals)^2) / n
+  testing_n[n-9] = sum((test[,2] - pred_test)^2) / (450 - n)
+}
+
+obs_seq = seq(10, 50)
+
+final_df = data.frame(cbind(obs_seq, training_n, testing_n))
+
+ggplot(final_df, aes(obs_seq, training_n, colour = &quot;Training&quot;)) + geom_line() +
+  geom_line(aes(obs_seq, testing_n, colour = &quot;Testing&quot;)) + theme_bw() +
+  scale_colour_manual(&quot;&quot;, 
+                      breaks = c(&quot;Training&quot;, &quot;Testing&quot;),
+                      values = c(&quot;blue&quot;, &quot;yellow&quot;)) +
+  labs(title = &quot;Prediction error against amount of training data&quot;,
+       x = &quot;Training data size (n)&quot;, y = &quot;prediction error&quot;) +
+  geom_text(x = 18, y = 1.5, label = &quot;Big drop&quot;, inherit.aes = FALSE, colour = &quot;red&quot;) +
+  theme(plot.title = element_text(hjust=0.5), legend.position = &quot;top&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The training error increases with a bigger sample size - we are less prone to fit the noise when there is more available data. The testing error steadily decreases up to a point where it drops significantly (<span class="math inline">\(n = 18\)</span> in our case), then it keeps going down but only slightly. The drop occurs fairly quickly because our model is not complicated - if it were, we would need more training points to capture the data structure. The conclusion is simple, the more data we have, the better. However, it is possible to find a data size that gives comparable prediction results as if we used more data.</p>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<ul>
+<li>If we knew the joint distribution of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, we would be able to find the best possible model. In practice, however, we can access only a sample from this distribution - our data.</li>
+<li>Empirical risk approximates the actual risk better and better as the sample size increases.</li>
+<li>We neither want to underfit nor overfit the training data. The aim is to find the sweet spot in between.</li>
+<li>Complex patterns require more sensitive models to capture them. When a pattern is apparent, we do not need many training samples to generalise well.</li>
+</ul>
+</div>

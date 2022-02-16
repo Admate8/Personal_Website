@@ -34,6 +34,8 @@ content:
     tag: EDA
   - name: Linear Modelling
     tag: Linear Modelling
+  - name: Theory
+    tag: Theory
 
 design:
   # Choose how many columns the section has. Valid values: '1' or '2'.
