@@ -14,21 +14,21 @@ organizations:
   url: https://warwick.ac.uk
 
 # Short bio (displayed in user profile at end of posts)
-bio: My research interests include applied machine learning and data analysis.
+bio: My research interests include applied statistics and data analysis.
 
 # Interests to show in About widget
 interests:
-- Machine Learning and Data Analysis
-- Applied Statistics
-- Photography and Dancing
+- Data analysis and visualisation
+- Applied statistics
+- Dancing
 
 # Education to show in About widget
 education:
   courses:
-  - course: MSc in Statistics
+  - course: MSc in Statistics (Distinction)
     institution: The University of Warwick
     year: 2022
-  - course: BSc in Pure Mathematics/Statistics
+  - course: BSc in Pure Mathematics/Statistics (First Class)
     institution: Aberystwyth University
     year: 2021
 
@@ -70,9 +70,9 @@ email: ""
 highlight_name: true
 ---
 
-I am a curious individual, particularly interested in various Machine Learning techniques and their implementations. I am looking forward to applying mathematical theoretical results in practice and learning to communicate my findings efficiently with people who may not have technical knowledge. A Data Science role requires many skills I strive to master, and therefore, this is the career I am courageously pursuing. 
+I am a curious individual, particularly interested in data modelling, analysis and visualisation. I specialise in R and R Shiny to produce stunning applications, reports and dashboards. However, I'm no stranger to other tools such as SQL, Excel and Power BI! I'm excited to apply mathematical theoretical results in practice and learn to communicate my findings efficiently with people who may not have technical knowledge. 
 
-Staying motivated and open-minded, I constantly seek opportunities for further personal development. I believe that positive change originates in the firm and well-rounded character, and by improving yourself as a human being, you impact the broader community, which as a result, leads to meaningful experiences. 
+Staying motivated and open-minded, I constantly seek opportunities for further personal development. I believe that positive change originates in firm and well-rounded character, and by improving yourself as a human being, you impact the broader community, which leads to meaningful experiences.
 
 
 {{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/CV.pdf" "newtab" >}}resumé{{< /staticref >}}.

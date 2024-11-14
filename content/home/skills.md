@@ -9,37 +9,37 @@ headless: true
 # Order that this section appears on the page.
 weight: 30
 
-title: Skills
+title: Technical Skills
 subtitle:
 
 # Showcase personal skills or business features.
 # - Add/remove as many `feature` blocks below as you like.
 # - For available icons, see: https://wowchemy.com/docs/page-builder/#icons
 feature:
-- description: "Confident in *dplyr*, *ggplot2* and *caret* among others. Actively learning *tidymodels* metapackage."
+- description: "Confident in *tidyverse*, *shiny* and *rmarkdown* among others."
   icon: r-project
   icon_pack: fab
   name: R
-- description: "Used mainly for mathematics (e.g. numerically solving PDEs)."
-  icon: python
-  icon_pack: fab
-  name: Python
-- description: "Formulae manipulations, e.g. *VLOOKUP*. Pivot Tables."
+- description: "Data extraction and manipulation."
+  icon: postgresqllogo
+  icon_pack: custom
+  name: PostgreSQL/T-SQL
+- description: "Analysis and advanced formulae."
   icon: file-excel
   icon_pack: fas
   name: MS Excel
-- icon: postgresqllogo
-  icon_pack: custom
-  name: PostgreSQL
-  description: Basic commands for data extraction and manipulation.
+- description: "(A bit rusty!)"
+  icon: python
+  icon_pack: fab
+  name: Python
 - icon: powebilogo
   icon_pack: custom
   name: MS Power Bi
-  description: Data Visualisation and interactive dashboards. 
+  description: "Data visualisation and interactive dashboards."" 
 - icon: latexlogo
   icon_pack: custom
   name: LaTeX
-  description: Reports and academic-style papers.
+  description: "Reports and academic-style papers."
 
 
 # Uncomment to use emoji icons.
