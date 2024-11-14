@@ -1,0 +1,40 @@
+---
+title: appPersonal Dashboard
+summary: Visualising and managing self. 
+tags:
+- Data Cleaning
+date: "2024-11-01"
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: false
+
+# Optional external URL for project (replaces project detail page).
+external_link: "https://personal-projects-prod.shinyapps.io/appPersonal/"
+
+image:
+  caption: Photo by Christophe Hautier on Unsplash
+  focal_point: Smart
+
+links:
+- icon: github
+  icon_pack: fab
+  name: Find the full code here.
+  url: https://github.com/Admate8/appPersonal
+  
+#url_code: ""
+#url_pdf: ""
+#url_slides: ""
+#url_video: ""
+
+# Slides (optional).
+#   Associate this project with Markdown slides.
+#   Simply enter your slide deck's filename without extension.
+#   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
+#   Otherwise, set `slides = ""`.
+#slides: ""
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.align = 'center', fig.pos = "!h")
+```
