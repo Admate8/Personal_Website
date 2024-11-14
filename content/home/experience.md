@@ -22,6 +22,36 @@ date_format: Jan 2006
 #   Leave `date_end` empty if it's your current employer.
 #   Begin multi-line descriptions with YAML's `|2-` multi-line prefix.
 experience:
+  - title: Higher Education Analyst (GORS badged)
+    company: Department for Education
+    company_url: 'https://www.gov.uk/government/organisations/department-for-education'
+    company_logo: dfelogo
+    location: Bristol
+    date_start: '2024-01-01'
+    date_end: '2025-01-01'
+    description: |2-
+        Responsibilities include:
+        
+        * Supporting the development and maintenance of the graduate loan repayment models, in particular the Advanced Learner Loan (ALL) model.
+        * Automating the data preprocessing and collation for the annual Student loan forecasts for England publication adhering to the reproducible analytical pipeline principles.
+        * Producing and communicating the latest forecast to a range of stakeholders, including senior official from across government and external bodies such as the Office for Budget Responsibility.
+        * Building knowledge of the loan repayment system, and how changes to policy and macroeconomic determinants affect financial outcomes for both the state and the student.
+        
+  - title: Data Scientist (GORS badged)
+    company: Department for Education
+    company_url: 'https://www.gov.uk/government/organisations/department-for-education'
+    company_logo: dfelogo
+    location: Bristol
+    date_start: '2022-09-01'
+    date_end: '2024-01-01'
+    description: |2-
+        Responsibilities include:
+        
+        * Developing data transformation pipelines and Power BI dashboards for the national Multiply - Skills for Life program, designed to enhance numeracy skills among adults across the country.
+        * Building advanced Shiny application automating laborious tasks and enabling centralised generation and distribution of the report cases classified as national concerns.
+        * Facilitating automation and continuous development of the current ways of working and providing theoretical and technical expertise tailored to non-technical audiences.
+        * Producing, maintaining and documenting the Power BI Skills Bootcamp dashboard supporting project delivery. 
+        
   - title: Finance Data Analyst
     company: Aberystwyth University
     company_url: 'https://www.aber.ac.uk/en/'
@@ -32,7 +62,7 @@ experience:
     description: |2-
         Responsibilities include:
         
-        * Collecting, clearing, maintaining, visualising, and analysing stakeholders’ data about future projects, grants, capital, and revenue spending.
+        * Collecting, clearing, maintaining, visualising, and analysing stakeholders' data about future projects, grants, capital, and revenue spending.
         * Enabling different financial scenarios simulations by priority amendments and automating their influence on the implementation waves and dates.
         * Extracting and processing the FTE numbers data from various sources for the benchmarking exercise.
         * Preparing Power Bi reports displaying outcomes of the analysis.
