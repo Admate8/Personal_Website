@@ -4,10 +4,10 @@ summary: Visualising and managing self.
 tags:
 - Data Cleaning
 date: "2024-11-01"
-output:
-  blogdown::html_page:
-    toc: true
-    number_sections: false
+# output:
+#   blogdown::html_page:
+#     toc: true
+#     number_sections: false
 
 # Optional external URL for project (replaces project detail page).
 external_link: "https://personal-projects-prod.shinyapps.io/appPersonal/"
