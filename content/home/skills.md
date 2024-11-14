@@ -35,7 +35,7 @@ feature:
 - icon: powebilogo
   icon_pack: custom
   name: MS Power Bi
-  description: "Data visualisation and interactive dashboards."" 
+  description: "Data visualisation and interactive dashboards."
 - icon: latexlogo
   icon_pack: custom
   name: LaTeX
