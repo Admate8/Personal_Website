@@ -1,7 +1,7 @@
 ---
 title: appPersonal Dashboard
-summary: Visualising and managing self. 
-- Data Cleaning
+summary: Visualising and managing self.
+  - Data Cleaning
 date: "2024-11-01"
 
 # Optional external URL for project (replaces project detail page).
