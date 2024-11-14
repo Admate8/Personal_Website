@@ -1,6 +1,7 @@
 ---
 title: appPersonal Dashboard
 summary: Visualising and managing self.
+  - Shiny
   - Data Cleaning
 date: "2024-11-01"
 
@@ -8,6 +9,6 @@ date: "2024-11-01"
 external_link: https://personal-projects-prod.shinyapps.io/appPersonal/
 
 image:
-  caption: Photo by Toa Heftiba on Unsplash
+  caption: Photo by Luke Chesser on Unsplash
   focal_point: Smart
 ---
