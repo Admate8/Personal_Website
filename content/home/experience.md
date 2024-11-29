@@ -33,8 +33,8 @@ experience:
         Responsibilities include:
         
         * Supporting the development and maintenance of the graduate loan repayment models, in particular the <a href="https://www.gov.uk/advanced-learner-loan" target="_blank">Advanced Learner Loan</a> (ALL) model.
-        * Automating the data preprocessing and collation for the annual Student loan forecasts for England publication adhering to the reproducible analytical pipeline principles.
-        * Producing and communicating the latest forecast to a range of stakeholders, including senior official from across government and external bodies such as the Office for Budget Responsibility.
+        * Automating the data preprocessing and collation for the annual <a href="https://explore-education-statistics.service.gov.uk/find-statistics/student-loan-forecasts-for-england" target="_blank">Student loan forecasts for England publication</a> adhering to the <a href="https://analysisfunction.civilservice.gov.uk/support/reproducible-analytical-pipelines/" target="_blank">reproducible analytical pipeline</a> principles.
+        * Producing and communicating the latest forecast to a range of stakeholders, including senior official from across government and external bodies such as the <a href="https://obr.uk" target="_blank">Office for Budget Responsibility</a>.
         * Building knowledge of the loan repayment system, and how changes to policy and macroeconomic determinants affect financial outcomes for both the state and the student.
         
   - title: Data Scientist (GORS badged)
@@ -47,10 +47,10 @@ experience:
     description: |2-
         Responsibilities include:
         
-        * Developing data transformation pipelines and Power BI dashboards for the national Multiply - Skills for Life program, designed to enhance numeracy skills among adults across the country.
+        * Developing data transformation pipelines and Power BI dashboards for the national <a href="https://www.skillsforcareers.education.gov.uk/pages/training-choice/multiply" target="_blank">Multiply - Skills for Life</a> program, designed to enhance numeracy skills among adults across the country.
         * Building advanced Shiny application automating laborious tasks and enabling centralised generation and distribution of the report cases classified as national concerns.
         * Facilitating automation and continuous development of the current ways of working and providing theoretical and technical expertise tailored to non-technical audiences.
-        * Producing, maintaining and documenting the Power BI Skills Bootcamp dashboard supporting project delivery. 
+        * Producing, maintaining and documenting the Power BI <a href="https://www.skillsforcareers.education.gov.uk/pages/training-choice/skills-bootcamp" target="_blank">Skills Bootcamp</a> dashboard supporting project delivery. 
         
   - title: Finance Data Analyst
     company: Aberystwyth University
