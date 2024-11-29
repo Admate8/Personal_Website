@@ -6,12 +6,12 @@ title: Adrian Wisnios
 superuser: true
 
 # Role/position/tagline
-role: MSc student in Statistics
+role: Data Analyst
 
 # Organizations/Affiliations to show in About widget
 organizations:
-- name: The University of Warwick
-  url: https://warwick.ac.uk
+- name: Department of Education
+  url: https://www.gov.uk/government/organisations/department-for-education
 
 # Short bio (displayed in user profile at end of posts)
 bio: My research interests include applied statistics and data analysis.

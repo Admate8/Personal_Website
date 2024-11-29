@@ -23,13 +23,13 @@ date_format: Jan 2006
 #   Leave other parameters empty if not required.
 #   Begin multi-line descriptions with YAML's `|2-` multi-line prefix.
 item:
-- certificate_url: https://www.datacamp.com/statement-of-accomplishment/track/b2f8c35061105e32b9a2516ce3d7465693fcdbe1
+- certificate_url: 
   date_end: ""
-  date_start: "2021-06-25"
-  description: ""
-  organization: DataCamp
-  organization_url: https://app.datacamp.com/learn/
-  title: Data Scientist with R
+  date_start: "2022-08-01"
+  description: 
+  organization: The University of Warwick
+  organization_url: https://warwick.ac.uk
+  title: 2022 Best MSc Dissertation Paper Award
   url: ""
 - certificate_url: https://www.datacamp.com/statement-of-accomplishment/track/a856e4d7a706de051f095c386708f736e200b3f9
   date_end: ""
