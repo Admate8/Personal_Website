@@ -22,7 +22,7 @@ date_format: Jan 2006
 #   Leave `date_end` empty if it's your current employer.
 #   Begin multi-line descriptions with YAML's `|2-` multi-line prefix.
 experience:
-  - title: Higher Education Analyst (GORS badged)
+  - title: Higher Education Analyst (<a href="https://www.gov.uk/government/organisations/civil-service-government-operational-research-service/about" target="_blank">GORS</a> badged)
     company: Department for Education
     company_url: 'https://www.gov.uk/government/organisations/department-for-education'
     company_logo: dfelogo
@@ -37,7 +37,7 @@ experience:
         * Producing and communicating the latest forecast to a range of stakeholders, including senior official from across government and external bodies such as the <a href="https://obr.uk" target="_blank">Office for Budget Responsibility</a>.
         * Building knowledge of the loan repayment system, and how changes to policy and macroeconomic determinants affect financial outcomes for both the state and the student.
         
-  - title: Data Scientist (GORS badged)
+  - title: Data Scientist (<a href="https://www.gov.uk/government/organisations/civil-service-government-operational-research-service/about" target="_blank">GORS</a> badged)
     company: Department for Education
     company_url: 'https://www.gov.uk/government/organisations/department-for-education'
     company_logo: dfelogo
