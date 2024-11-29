@@ -32,7 +32,7 @@ experience:
     description: |2-
         Responsibilities include:
         
-        * Supporting the development and maintenance of the graduate loan repayment models, in particular the Advanced Learner Loan (ALL) model.
+        * Supporting the development and maintenance of the graduate loan repayment models, in particular the <a href="https://www.gov.uk/advanced-learner-loan" target="_blank">Advanced Learner Loan</a> (ALL) model.
         * Automating the data preprocessing and collation for the annual Student loan forecasts for England publication adhering to the reproducible analytical pipeline principles.
         * Producing and communicating the latest forecast to a range of stakeholders, including senior official from across government and external bodies such as the Office for Budget Responsibility.
         * Building knowledge of the loan repayment system, and how changes to policy and macroeconomic determinants affect financial outcomes for both the state and the student.
